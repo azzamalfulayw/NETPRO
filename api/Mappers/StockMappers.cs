@@ -20,7 +20,11 @@ namespace api.Mappers
                 LastDiv = stockModel.LastDiv,
                 Industry = stockModel.Industry,
                 MarketCap = stockModel.MarketCap,
-                Comments = stockModel.Comments.Select(c => c.ToCommentDto()).ToList()
+                Comments = stockModel.Comments.Select(c => c.ToCommentDto()).ToList(),
+                AverageRating = stockModel.Ratings !=null && stockModel.Ratings.Any()
+                ? Math.Round(stockModel.Ratings.Average(r => r.Score), 2) : 0,
+                RatingCount = stockModel.Ratings != null 
+                ? stockModel.Ratings.Count : 0
             };
         }
 

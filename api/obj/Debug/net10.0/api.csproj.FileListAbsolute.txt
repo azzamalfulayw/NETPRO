@@ -218,3 +218,4 @@ C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\obj\Debug\net10.0\refint\api.dll
 C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\obj\Debug\net10.0\api.pdb
 C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\obj\Debug\net10.0\api.genruntimeconfig.cache
 C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\obj\Debug\net10.0\ref\api.dll
+C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\obj\Debug\net10.0\api.sourcelink.json

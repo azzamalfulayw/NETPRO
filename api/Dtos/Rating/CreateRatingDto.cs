@@ -9,8 +9,7 @@ namespace api.Dtos.Rating
     public class CreateRatingDto
     {
         [Required]
-        [MinLength(0, ErrorMessage ="Rating must between 0 - 5")]
-        [MaxLength(5,ErrorMessage ="Rating must between 0 - 5")]
+        [Range(0,5, ErrorMessage ="Rating must be between 0 and 5")]
         public int Score { get; set; }
     }
 }
