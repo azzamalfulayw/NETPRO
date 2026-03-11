@@ -67,7 +67,7 @@ namespace api.Controllers
             
             if(!await _stockRepo.StockExists(stockId))
             {
-                return BadRequest("Stock does not exist");
+                return BadRequest("Stock does not  exist");
             }
 
             var username = User.GetUsername();

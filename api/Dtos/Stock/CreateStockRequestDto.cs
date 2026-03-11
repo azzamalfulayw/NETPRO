@@ -12,7 +12,7 @@ namespace api.Dtos.Stock
         [MaxLength(10, ErrorMessage = "Symbol cannot be over 10 characters")]
         public string Sympol { get; set; } = string.Empty;
         [Required]
-        [MaxLength(10, ErrorMessage = "Company name cannot be over 10 characters")]
+        [MaxLength(10, ErrorMessage = "Company name cannot be over 10 characters ")]
         public string CompanyName { get; set; } = string.Empty;
         [Required]
         [Range(1,10000000000)]
