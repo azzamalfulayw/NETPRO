@@ -21,5 +21,6 @@ namespace api.Models
         public List<Comment> Comments  { get; set; } = new List<Comment>();
         public List<Portfolio> Portfolios {get; set;} = new List<Portfolio>();
         public List<Rating> Ratings { get; set; } = new List<Rating> ();
+        public List<WatchList> Watchlists { get; set; } = new List<WatchList>();
     }
 }
