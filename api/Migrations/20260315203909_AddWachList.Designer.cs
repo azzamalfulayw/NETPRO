@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using api.Data;
 
@@ -11,9 +12,11 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260315203909_AddWachList")]
+    partial class AddWachList
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,15 +54,15 @@ namespace api.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "050462db-8b11-471e-9dae-8fc284f165b2",
-                            ConcurrencyStamp = "35bb9038-4dc9-4e1f-8656-4d5f87187732",
+                            Id = "d1f24682-1cee-4681-a712-7f2513704aee",
+                            ConcurrencyStamp = "255660ba-471b-4f59-baf7-56e38d4e0fdd",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "5f672f74-3fe9-4e77-8b74-e5151782352b",
-                            ConcurrencyStamp = "36a4a0bc-2686-4d52-81f4-4c6c5db7a92a",
+                            Id = "f79ca478-e82f-4d6c-a9f1-6fd04729c875",
+                            ConcurrencyStamp = "211b5fcf-e668-409d-aa0c-3f4bffddb339",
                             Name = "User",
                             NormalizedName = "USER"
                         });
@@ -361,9 +364,6 @@ namespace api.Migrations
 
                     b.Property<DateTime>("AddedOn")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("AppUserId", "StockId");
 

@@ -10,5 +10,6 @@ namespace api.Models
     public class AppUser : IdentityUser
     {
         public List<Portfolio> Portfolios {get; set;} = new List<Portfolio>();
+        public List<WatchList> Watchlists { get; set; } = new List<WatchList>();
     }
 }
