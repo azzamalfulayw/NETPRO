@@ -36,6 +36,10 @@ namespace api.Data
                 .WithMany(u => u.Portfolios)
                 .HasForeignKey(p => p.StockId);
 
+            builder.Entity<Rating>()
+                .HasIndex(r => new { r.AppUserId, r.StockId })
+                .IsUnique();
+
             List<IdentityRole> roles = new List<IdentityRole> 
             {
                 new IdentityRole

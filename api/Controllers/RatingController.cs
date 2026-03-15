@@ -8,6 +8,7 @@ using api.Extensions;
 using api.Interfaces;
 using api.Mappers;
 using api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -29,7 +30,7 @@ namespace api.Controllers
             _stockRepo = stockRepo;
             _userManager = userManager;
         }
-
+        
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -60,38 +61,61 @@ namespace api.Controllers
         }
 
         [HttpPost("{stockId:int}")]
+        [Authorize]
         public async Task<IActionResult> Create([FromRoute] int stockId, [FromBody] CreateRatingDto ratingDto)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            
-            if(!await _stockRepo.StockExists(stockId))
-            {
-                return BadRequest("Stock does not  exist");
-            }
 
             var username = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(username);
 
+            if (appUser == null)
+                return Unauthorized();
+
+            var stock = await _stockRepo.GetByIdAsync(stockId);
+
+            if (stock == null)
+                return NotFound("Stock not found");
+
+            var existingRating = await _ratingRepo.GetUserRatingForStockAsync(appUser.Id, stockId);
+
+            if (existingRating != null)
+                return BadRequest("You already rated this stock");
+
             var ratingModel = ratingDto.ToRatingCreate(stockId);
             ratingModel.AppUserId = appUser.Id;
+
             await _ratingRepo.CreateAsync(ratingModel);
 
-            return CreatedAtAction(nameof(GetById), new {id = ratingModel.Id}, ratingModel.ToRatingDto());
+            return Ok(ratingModel.ToRatingDto());
         }
         [HttpPut]
         [Route("{id:int}")]
+        [Authorize]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateRatingDto updateDto)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
+            var username = User.GetUsername();
+            var appUser = await _userManager.FindByNameAsync(username);
+
+            if (appUser == null)
+                return Unauthorized();
+
+            var existingRating = await _ratingRepo.GetByIdAsync(id);
+
+            if (existingRating == null)
+                return NotFound("Rating not found");
+
+            if (existingRating.AppUserId != appUser.Id)
+                return Forbid();
 
             var rating = await _ratingRepo.UpdateAsync(id, updateDto.ToRatingUpdate());
 
             if (rating == null)
-            {
                 return NotFound("Rating not found");
-            }
 
             return Ok(rating.ToRatingDto());
         }
