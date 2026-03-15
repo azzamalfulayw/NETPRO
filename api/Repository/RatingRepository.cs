@@ -44,14 +44,19 @@ namespace api.Repository
 
         public async Task<Rating?> GetByIdAsync(int id)
         {
-            return await _context.Ratings.Include(a => a.AppUser).FirstOrDefaultAsync(c => c.Id == id);
+            return await _context.Ratings.FirstOrDefaultAsync(r => r.Id == id);
+        }
+
+        public async Task<Rating?> GetUserRatingForStockAsync(string appUserId, int stockId)
+        {
+            return await _context.Ratings.FirstOrDefaultAsync(r => r.AppUserId == appUserId && r.StockId == stockId);
         }
 
         public async Task<Rating?> UpdateAsync(int id, Rating ratingModel)
         {
             var existingRating = await _context.Ratings.FindAsync(id);
 
-            if(existingRating == null)
+            if (existingRating == null)
             {
                 return null;
             }

@@ -13,5 +13,6 @@ namespace api.Interfaces
         Task<Rating?> CreateAsync(Rating ratingModel);
         Task<Rating?> UpdateAsync(int id, Rating ratingModel);
         Task<Rating?> DeleteAsync(int id); 
+        Task<Rating?> GetUserRatingForStockAsync(string appUserId, int stockId);
     }
 }
