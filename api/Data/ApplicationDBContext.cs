@@ -21,6 +21,7 @@ namespace api.Data
         public DbSet<Portfolio> portfolios {get; set;}
         public DbSet<Rating> Ratings { get; set; }
         public DbSet<WatchList> WatchLists { get; set; }
+        public DbSet<Transaction> Transactions {get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -37,9 +38,11 @@ namespace api.Data
                 .WithMany(u => u.Portfolios)
                 .HasForeignKey(p => p.StockId);
 
+
             builder.Entity<Rating>()
                 .HasIndex(r => new { r.AppUserId, r.StockId })
                 .IsUnique();
+
 
             builder.Entity<WatchList>(x => x.HasKey(p => new { p.AppUserId, p.StockId }));
 
@@ -52,6 +55,18 @@ namespace api.Data
                 .HasOne(u => u.Stock)
                 .WithMany(u => u.Watchlists)
                 .HasForeignKey(p => p.StockId);
+
+
+            builder.Entity<Transaction>()
+                .HasOne(t => t.AppUser)
+                .WithMany(u => u.Transactions)
+                .HasForeignKey(t => t.AppUserId);
+
+            builder.Entity<Transaction>()
+                .HasOne(t => t.Stock)
+                .WithMany(s => s.Transactions)
+                .HasForeignKey(t => t.StockId);
+
 
             List<IdentityRole> roles = new List<IdentityRole> 
             {

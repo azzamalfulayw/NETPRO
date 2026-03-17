@@ -22,5 +22,6 @@ namespace api.Models
         public List<Portfolio> Portfolios {get; set;} = new List<Portfolio>();
         public List<Rating> Ratings { get; set; } = new List<Rating> ();
         public List<WatchList> Watchlists { get; set; } = new List<WatchList>();
+        public List<Transaction> Transactions { get; set; } = new List<Transaction>();
     }
 }
