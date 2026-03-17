@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using api.Data;
 
@@ -11,9 +12,11 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260317185754_AddTransactions")]
+    partial class AddTransactions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,15 +54,15 @@ namespace api.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "51215bee-a075-4db2-b763-cba310e8dce7",
-                            ConcurrencyStamp = "de37a045-ba35-4af8-9e75-71fdbeaeae61",
+                            Id = "b7fa5d2a-e506-4610-b218-e8bd88d2b9fd",
+                            ConcurrencyStamp = "3f12728a-bdc2-4346-bc4d-84974201e34e",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "97218943-d435-4aab-a7bf-18f5c07e8a9a",
-                            ConcurrencyStamp = "b499eab3-7273-4b04-9b63-dbfc2353229c",
+                            Id = "03147c49-80a0-44ff-8b5f-37973936e7f5",
+                            ConcurrencyStamp = "50e35d85-6559-4a97-ac18-3c98e2995029",
                             Name = "User",
                             NormalizedName = "USER"
                         });
@@ -365,9 +368,6 @@ namespace api.Migrations
                     b.Property<string>("AppUserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("Category")
-                        .HasColumnType("int");
 
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
