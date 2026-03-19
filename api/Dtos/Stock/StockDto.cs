@@ -18,5 +18,8 @@ namespace api.Dtos.Stock
         public List<CommentDto> Comments {get; set;}
         public double AverageRating { get; set; }
         public int RatingCount { get; set; }
+        public decimal CurrentPrice { get; set; }
+        public decimal PriceChangePercent { get; set; }
+        public DateTime? LastPriceUpdate { get; set; }
     }
 }
