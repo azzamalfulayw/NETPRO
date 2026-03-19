@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using api.Data;
 
@@ -11,9 +12,11 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260318174235_AddLiveStockFields")]
+    partial class AddLiveStockFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,15 +54,15 @@ namespace api.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "3b99ddb3-4fee-4839-bd1f-d5f88fb423be",
-                            ConcurrencyStamp = "d2a5c121-a7d5-43e6-96c8-541d50e77de5",
+                            Id = "6354d205-ed6d-453e-998e-27369156d586",
+                            ConcurrencyStamp = "425560ee-a16b-4ddd-9748-c36a04541f24",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "8e2931fb-9545-424e-b9bf-77cc122afeab",
-                            ConcurrencyStamp = "77b2a84e-f742-4648-9311-fa80d2e42e90",
+                            Id = "755067d9-de66-490d-ae06-17320ca6b2b9",
+                            ConcurrencyStamp = "6a02ee44-6c0d-4553-be13-698d28e1dcd7",
                             Name = "User",
                             NormalizedName = "USER"
                         });

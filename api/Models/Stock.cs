@@ -23,5 +23,10 @@ namespace api.Models
         public List<Rating> Ratings { get; set; } = new List<Rating> ();
         public List<WatchList> Watchlists { get; set; } = new List<WatchList>();
         public List<Transaction> Transactions { get; set; } = new List<Transaction>();
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal CurrentPrice { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal PriceChangePercent { get; set; }
+        public DateTime? LastPriceUpdate { get; set; }
     }
 }

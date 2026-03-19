@@ -19,10 +19,13 @@ namespace api.Controllers
     {
         private readonly ApplicationDBContext _context;
         private readonly IStockRepository _stockRepo;
-        public StockControllers(ApplicationDBContext context, IStockRepository stockRepo)
+        private readonly IStockDataService _stockDataService;
+        public StockControllers(ApplicationDBContext context, IStockRepository stockRepo
+        , IStockDataService stockDataService)
         {
             _stockRepo = stockRepo;
             _context = context;
+            _stockDataService = stockDataService;
         }
         [HttpGet]
         [Authorize]
@@ -98,6 +101,17 @@ namespace api.Controllers
             }
 
             return NoContent();
+        }
+
+        [HttpGet("{symbol}/live-price")]
+        public async Task<IActionResult> GetLivePrice([FromRoute] string symbol)
+        {
+            var result = await _stockDataService.GetCurrentPriceAsync(symbol);
+
+            if (result == null)
+                return NotFound("Live price not found");
+
+            return Ok(result);
         }
     }
 }

@@ -24,7 +24,10 @@ namespace api.Mappers
                 AverageRating = stockModel.Ratings !=null && stockModel.Ratings.Any()
                 ? Math.Round(stockModel.Ratings.Average(r => r.Score), 2) : 0,
                 RatingCount = stockModel.Ratings != null 
-                ? stockModel.Ratings.Count : 0
+                ? stockModel.Ratings.Count : 0,
+                CurrentPrice = stockModel.CurrentPrice,
+                PriceChangePercent = stockModel.PriceChangePercent,
+                LastPriceUpdate = stockModel.LastPriceUpdate
             };
         }
 
