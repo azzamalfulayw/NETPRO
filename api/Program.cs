@@ -100,6 +100,13 @@ builder.Services.AddScoped<IRatingRepository, RatingRepository>();
 builder.Services.AddScoped<IWatchListRepository, WatchListRepository>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
+builder.Services.Configure<StockApiSettings>(builder.Configuration.GetSection("StockApi"));
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<ICacheService, CacheService>();
+builder.Services.AddHttpClient<IStockDataService, StockDataService>();
+builder.Services.AddHostedService<StockPriceUpdateService>();
+builder.Services.AddScoped<IPortfolioAnalyticsService, PortfolioAnalyticsService>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
