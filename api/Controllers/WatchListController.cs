@@ -6,6 +6,10 @@ using api.Dtos.WatchList;
 using api.Extensions;
 using api.Interfaces;
 using api.Models;
+using api.Features.WatchList.Queries;
+using api.Features.WatchList.Commands;
+using api.Features.Stock.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -18,14 +22,12 @@ namespace api.Controllers
     public class WatchListController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;
-        private readonly IStockRepository _stockRepo;
-        private readonly IWatchListRepository _watchlistRepo;
+        private readonly IMediator _mediator;
 
-        public WatchListController(UserManager<AppUser> userManager,IStockRepository stockRepo,IWatchListRepository watchlistRepo)
+        public WatchListController(UserManager<AppUser> userManager, IMediator mediator)
         {
             _userManager = userManager;
-            _stockRepo = stockRepo;
-            _watchlistRepo = watchlistRepo;
+            _mediator = mediator;
         }
 
         [HttpGet]
@@ -35,10 +37,9 @@ namespace api.Controllers
             var username = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(username);
 
-            if (appUser == null)
-                return Unauthorized();
+            if (appUser == null) return Unauthorized();
 
-            var userWatchList = await _watchlistRepo.GetUserWatchList(appUser);
+            var userWatchList = await _mediator.Send(new GetUserWatchListQuery { User = appUser });
 
             return Ok(userWatchList);
         }
@@ -52,15 +53,13 @@ namespace api.Controllers
             var username = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(username);
 
-            if (appUser == null)
-                return Unauthorized();
+            if (appUser == null) return Unauthorized();
 
-            var stock = await _stockRepo.GetByIdAsync(stockId);
+            var stock = await _mediator.Send(new GetStockByIdQuery { Id = stockId });
 
-            if (stock == null)
-                return NotFound("Stock not found");
+            if (stock == null) return NotFound("Stock not found");
 
-            var userWatchList = await _watchlistRepo.GetUserWatchList(appUser);
+            var userWatchList = await _mediator.Send(new GetUserWatchListQuery { User = appUser });
 
             if (userWatchList.Any(w => w.StockId == stockId))
                 return BadRequest("Stock already exists in watchlist");
@@ -73,7 +72,7 @@ namespace api.Controllers
                 Notes = dto?.Notes
             };
 
-            await _watchlistRepo.CreateAsync(watchListModel);
+            await _mediator.Send(new CreateWatchListCommand { WatchList = watchListModel });
 
             return Ok("Stock added to watchlist successfully");
         }
@@ -86,13 +85,11 @@ namespace api.Controllers
             var username = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(username);
 
-            if (appUser == null)
-                return Unauthorized();
+            if (appUser == null) return Unauthorized();
 
-            var deletedWatchlist = await _watchlistRepo.DeleteAsync(appUser, stockId);
+            var deletedWatchlist = await _mediator.Send(new DeleteWatchListCommand { AppUser = appUser, StockId = stockId });
 
-            if (deletedWatchlist == null)
-                return NotFound("Stock not found in watchlist");
+            if (deletedWatchlist == null) return NotFound("Stock not found in watchlist");
 
             return Ok();
         }

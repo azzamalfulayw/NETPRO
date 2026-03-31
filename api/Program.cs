@@ -92,13 +92,9 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddScoped<IStockRepository, StockRepository>();
-builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+        
 builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
-builder.Services.AddScoped<IRatingRepository, RatingRepository>();
-builder.Services.AddScoped<IWatchListRepository, WatchListRepository>();
-builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
 builder.Services.Configure<StockApiSettings>(builder.Configuration.GetSection("StockApi"));
 builder.Services.AddMemoryCache();

@@ -71,11 +71,11 @@ namespace api.Service
 
                 try
                 {
-                    var liveData = await stockDataService.GetCurrentPriceAsync(stock.Sympol);
+                    var liveData = await stockDataService.GetCurrentPriceAsync(stock.Symbol);
 
                     if (liveData == null)
                     {
-                        _logger.LogWarning("No live data returned for stock {Symbol}", stock.Sympol);
+                        _logger.LogWarning("No live data returned for stock {Symbol}", stock.Symbol);
                         continue;
                     }
 
@@ -85,7 +85,7 @@ namespace api.Service
 
                     _logger.LogInformation(
                         "Updated {Symbol}: Price={Price}, Change%={ChangePercent}",
-                        stock.Sympol,
+                        stock.Symbol,
                         stock.CurrentPrice,
                         stock.PriceChangePercent
                     );
@@ -98,7 +98,7 @@ namespace api.Service
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to update stock {Symbol}", stock.Sympol);
+                    _logger.LogError(ex, "Failed to update stock {Symbol}", stock.Symbol);
                 }
             }
 

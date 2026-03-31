@@ -14,7 +14,7 @@ namespace api.Mappers
             return new StockDto
             {
                 Id = stockModel.Id,
-                Sympol = stockModel.Sympol,
+                Symbol = stockModel.Symbol,
                 CompanyName = stockModel.CompanyName,
                 Purchase = stockModel.Purchase,
                 LastDiv = stockModel.LastDiv,
@@ -31,11 +31,11 @@ namespace api.Mappers
             };
         }
 
-        public static Stock ToStockFromCreteDTO(this CreateStockRequestDto stockDto)
+        public static Stock ToStockFromCreateDTO(this CreateStockRequestDto stockDto)
         {
             return new Stock
             {
-                Sympol = stockDto.Sympol,
+                Symbol = stockDto.Symbol,
                 CompanyName = stockDto.CompanyName,
                 Purchase = stockDto.Purchase,
                 LastDiv = stockDto.LastDiv,

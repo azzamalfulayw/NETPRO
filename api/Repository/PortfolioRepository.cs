@@ -26,7 +26,7 @@ namespace api.Repository
 
         public async Task<Portfolio> DeletePortfolio(AppUser appUser, string symbol)
         {
-            var portfolioModel = await _context.portfolios.FirstOrDefaultAsync(x => x.AppUserId == appUser.Id && x.Stock.Sympol.ToLower() == symbol.ToLower());
+            var portfolioModel = await _context.portfolios.FirstOrDefaultAsync(x => x.AppUserId == appUser.Id && x.Stock.Symbol.ToLower() == symbol.ToLower());
 
             if (portfolioModel == null)
             {
@@ -44,7 +44,7 @@ namespace api.Repository
             .Select(stock => new Stock
             {
                 Id = stock.StockId,
-                Sympol = stock.Stock.Sympol,
+                Symbol = stock.Stock.Symbol,
                 CompanyName = stock.Stock.CompanyName,
                 Purchase = stock.Stock.Purchase,
                 LastDiv = stock.Stock.LastDiv,

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refactoring Tracker - NETPRO</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1000px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; }
+        h1, h2, h3 { color: #2c3e50; }
+        .rules-box { background: #fff; border-left: 5px solid #3498db; padding: 20px; margin-bottom: 30px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .card { background: #fff; border-radius: 8px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 4px solid #2ecc71; }
+        .card-header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+        .card-title { margin: 0; font-size: 1.25rem; color: #2c3e50; }
+        .date-badge { background: #e8f4f8; color: #2980b9; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; }
+        .section-title { font-weight: bold; margin-top: 15px; color: #555; }
+        ul { margin-top: 5px; padding-left: 20px; }
+        code { background: #f8f9fa; padding: 2px 5px; border-radius: 3px; font-family: monospace; color: #e83e8c; }
+        .tag { display: inline-block; background: #e2e8f0; color: #4a5568; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; margin-right: 5px; margin-bottom: 5px; }
+        .nav-link { display: inline-block; margin-bottom: 20px; color: #3498db; text-decoration: none; font-weight: bold; }
+        .nav-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <a href="updates.html" class="nav-link">← Back to Updates</a>
+    
+    <h1>NETPRO Refactoring Logs</h1>
+    <p>This page documents the massive architectural transition to MediatR-powered CQRS.</p>
+
+    <!-- REFACTOR CARDS START -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Completed CQRS Migration: Stock Module</h3>
+            <span class="date-badge">2026-03-31</span>
+        </div>
+        <div>
+            <span class="tag">CQRS</span>
+            <span class="tag">MediatR</span>
+            <span class="tag">Architecture</span>
+        </div>
+        
+        <div class="section-title">What Was Done:</div>
+        <p>The entire Stock domain was cleanly migrated from a traditional, monolithic Repository Pattern (<code>IStockRepository</code>) to a Command Query Responsibility Segregation (CQRS) architecture powered by MediatR. Specifically:</p>
+        <ul>
+            <li><strong>Dependency Injection:</strong> Removed the <code>IStockRepository</code> from the DI container inside <code>Program.cs</code> and registered the MediatR pipeline instead.</li>
+            <li><strong>Thinned Controllers:</strong> In <code>StockController.cs</code>, we completely ripped out the repository injection. The controller now only injects an <code>IMediator</code> interface. Every HTTP endpoint now simply builds a Request object (e.g., <code>CreateStockCommand</code> or <code>GetAllStocksQuery</code>) and sends it directly through the MediatR pipeline.</li>
+            <li><strong>Query Handlers Created:</strong> Extracted all the "Read" operations (getting all stocks, getting stock by symbol, etc.) into isolated Query requests and Handlers inside <code>api/Features/Stock/Queries.cs</code>.</li>
+            <li><strong>Command Handlers Created:</strong> Extracted all the "Write" operations (creating, updating, and deleting stock entities) into isolated Command requests and Handlers inside <code>api/Features/Stock/Commands.cs</code>.</li>
+            <li><strong>Legacy Deletion:</strong> To strictly enforce the new architecture, the multi-purpose <code>api/Interfaces/IStockRepository.cs</code> and <code>api/Repository/StockRepository.cs</code> files were explicitly mapped to the handlers and then permanently deleted.</li>
+        </ul>
+
+        <div class="section-title">Why We Did It:</div>
+        <p>Transitioning from Repositories to CQRS gives us extraordinary engineering benefits for future scalability:</p>
+        <ul>
+            <li><strong>Strict Separation of Concerns:</strong> Repositories notoriously become bloated "God classes" carrying dozens of methods over time. By separating them into Handlers, a single class is only responsible for a single operation. This completely matches the definitive Single Responsibility Principle.</li>
+            <li><strong>Asymmetric Scalability:</strong> Write operations (Commands) usually contain complex validation and state-changing business logic, while Read operations (Queries) simply need rapid execution. By decoupling them, we can tune our Entity Framework queries inside <i>Reads</i> without breaking or affecting the strict tracking configurations inside <i>Writes</i>.</li>
+            <li><strong>Predictable Testing:</strong> Mocking a giant `IStockRepository` interface to write a unit test is cumbersome. Isolating behavior to MediatR handlers makes testing deeply isolated and highly targeted.</li>
+        </ul>
+        
+        <div class="section-title">Files Created:</div>
+        <ul>
+            <li><code>api/Features/Stock/Queries.cs</code> (Contains GetAllStocks, GetStockById, GetStockBySymbol, CheckStockExists Handlers)</li>
+            <li><code>api/Features/Stock/Commands.cs</code> (Contains CreateStock, UpdateStock, DeleteStock Handlers)</li>
+        </ul>
+        <div class="section-title">Files Deleted:</div>
+        <ul>
+            <li><del><code>api/Interfaces/IStockRepository.cs</code></del></li>
+            <li><del><code>api/Repository/StockRepository.cs</code></del></li>
+        </ul>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Completed CQRS Migration: Portfolio & WatchList Modules</h3>
+            <span class="date-badge">2026-03-31</span>
+        </div>
+        <div>
+            <span class="tag">CQRS</span>
+            <span class="tag">MediatR</span>
+            <span class="tag">Architecture</span>
+        </div>
+        
+        <div class="section-title">What Was Done:</div>
+        <p>The Portfolio and WatchList components of the overarching User Domain were successfully consolidated into our new CQRS infrastructure.</p>
+        <ul>
+            <li><strong>Dependency Injection:</strong> Completely unlinked <code>IPortfolioRepository</code> and <code>IWatchListRepository</code> from the service container in <code>Program.cs</code>.</li>
+            <li><strong>Controller Cleansing:</strong> Rewrote exactly 6 specific controller routes inside <code>PortfolioController.cs</code> and <code>WatchListController.cs</code>. We removed all custom database linkages and standardized them to exclusively push Commands and Queries using MediatR. Both controllers are now "thin clients" in the truest sense.</li>
+            <li><strong>Action Mapping:</strong> The internal behavior of creating, fetching, and dynamically assigning Portfolios and WatchLists to specific Application Users (linked by identity) have been converted to atomic request objects.</li>
+            <li><strong>Legacy Deletion:</strong> The 4 legacy interfaces and rigid implementation repository files were fully obliterated to lock in the new standard.</li>
+        </ul>
+
+        <div class="section-title">Files Created:</div>
+        <ul>
+            <li><code>api/Features/Portfolio/Queries.cs</code></li>
+            <li><code>api/Features/Portfolio/Commands.cs</code></li>
+            <li><code>api/Features/WatchList/Queries.cs</code></li>
+            <li><code>api/Features/WatchList/Commands.cs</code></li>
+        </ul>
+        <div class="section-title">Files Deleted:</div>
+        <ul>
+            <li><del><code>api/Interfaces/IPortfolioRepository.cs</code></del></li>
+            <li><del><code>api/Repository/PortfolioRepository.cs</code></del></li>
+            <li><del><code>api/Interfaces/IWatchListRepository.cs</code></del></li>
+            <li><del><code>api/Repository/WatchListRepository.cs</code></del></li>
+        </ul>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Completed CQRS Migration: Transaction Module</h3>
+            <span class="date-badge">2026-03-31</span>
+        </div>
+        <div>
+            <span class="tag">CQRS</span>
+            <span class="tag">MediatR</span>
+            <span class="tag">Architecture</span>
+            <span class="tag">Massive Refactor</span>
+        </div>
+        
+        <div class="section-title">What Was Done:</div>
+        <p>The Transaction module was the most complex component of the monolithic codebase. It was heavily tangled with the Portfolio logic and consisted of advanced Entity Framework data pipelines. It has been successfully ripped out and decoupled using CQRS.</p>
+        <ul>
+            <li><strong>Dependency Injection:</strong> Eliminated <code>ITransactionRepository</code> entirely.</li>
+            <li><strong>Advanced Logic Migration:</strong> In <code>CreateTransaction</code>, the legacy controller directly accessed `_context.portfolios` to execute multi-entity updates. We purged this entire block. The pure business logic of checking portfolios, preventing overselling, computing totals, and committing dual-entity transactions to the DB is now perfectly hidden inside <code>CreateTransactionHandler</code>.</li>
+            <li><strong>Complex Read Models:</strong> Extracted <code>GetRealizedGainLoss</code>, <code>GetUserSummary</code>, and CSV Export loops into distinct read-only Queries.</li>
+            <li><strong>Controller Cleansing:</strong> Rewrote 7 distinct endpoints to pure <code>_mediator.Send()</code>.</li>
+        </ul>
+
+        <div class="section-title">Files Created:</div>
+        <ul>
+            <li><code>api/Features/Transaction/Queries.cs</code> (Handles 6 distinct complex Query patterns)</li>
+            <li><code>api/Features/Transaction/Commands.cs</code> (Handles multi-table transaction commits)</li>
+        </ul>
+        <div class="section-title">Files Deleted:</div>
+        <ul>
+            <li><del><code>api/Interfaces/ITransactionRepository.cs</code></del></li>
+            <li><del><code>api/Repository/TransactionRepository.cs</code></del></li>
+        </ul>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Completed CQRS Migration: Comment & Rating Modules</h3>
+            <span class="date-badge">2026-03-31</span>
+        </div>
+        <div>
+            <span class="tag">CQRS</span>
+            <span class="tag">MediatR</span>
+            <span class="tag">Final Phase</span>
+        </div>
+        
+        <div class="section-title">What Was Done:</div>
+        <p>This phase marks the 100% completion of the massive monolithic-to-CQRS architecture shift. The final two modules—Comment and Rating—have been seamlessly migrated.</p>
+        <ul>
+            <li><strong>Complete Decoupling:</strong> The DI container is officially clean. <code>ICommentRepository</code> and <code>IRatingRepository</code> have been completely purged from <code>Program.cs</code>.</li>
+            <li><strong>Controller Standardization:</strong> <code>CommentController.cs</code> and <code>RatingController.cs</code> now exclusively fire commands using <code>IMediator</code> instead of relying on legacy repository injections.</li>
+            <li><strong>Legacy Destruction:</strong> The final 4 data access files were deleted. The <code>api/Repository/</code> folder no longer contains any active monolithic components. The codebase now strictly isolates Business Logic inside Handlers.</li>
+        </ul>
+
+        <div class="section-title">Files Created:</div>
+        <ul>
+            <li><code>api/Features/Comment/Queries.cs</code></li>
+            <li><code>api/Features/Comment/Commands.cs</code></li>
+            <li><code>api/Features/Rating/Queries.cs</code></li>
+            <li><code>api/Features/Rating/Commands.cs</code></li>
+        </ul>
+        <div class="section-title">Files Deleted:</div>
+        <ul>
+            <li><del><code>api/Interfaces/ICommentRepository.cs</code></del></li>
+            <li><del><code>api/Repository/CommentRepository.cs</code></del></li>
+            <li><del><code>api/Interfaces/IRatingRepository.cs</code></del></li>
+            <li><del><code>api/Repository/RatingRepository.cs</code></del></li>
+        </ul>
+    </div>
+    <!-- REFACTOR CARDS END -->
+
+</body>
+</html>

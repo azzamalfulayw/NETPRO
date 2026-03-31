@@ -80,7 +80,7 @@ namespace api.Service
 
                 holdings.Add(new StockHolding
                 {
-                    Symbol = portfolio.Stock.Sympol,
+                    Symbol = portfolio.Stock.Symbol,
                     CompanyName = portfolio.Stock.CompanyName,
                     Quantity = portfolio.Quantity,
                     AverageCostBasis = Math.Round(averageCostBasis, 2),
@@ -196,7 +196,7 @@ namespace api.Service
 
                 foreach (var portfolio in portfolios)
                 {
-                    var historicalPrices = await _stockDataService.GetHistoricalPricesAsync(portfolio.Stock.Sympol, days + 5);
+                    var historicalPrices = await _stockDataService.GetHistoricalPricesAsync(portfolio.Stock.Symbol, days + 5);
 
                     var point = historicalPrices
                         .OrderByDescending(h => h.Date)
@@ -237,7 +237,7 @@ namespace api.Service
             return new StockPerformanceMetrics
             {
                 StockId = stock.Id,
-                Symbol = stock.Sympol,
+                Symbol = stock.Symbol,
                 CompanyName = stock.CompanyName,
                 CurrentPrice = stock.CurrentPrice,
                 PriceChangePercent = stock.PriceChangePercent,

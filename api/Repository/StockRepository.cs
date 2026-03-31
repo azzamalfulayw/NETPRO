@@ -50,14 +50,14 @@ namespace api.Repository
 
             if (!string.IsNullOrWhiteSpace(query.Symbol))
             {
-                stocks = stocks.Where(s => s.Sympol.Contains(query.Symbol));
+                stocks = stocks.Where(s => s.Symbol.Contains(query.Symbol));
             }
 
             if (!string.IsNullOrWhiteSpace(query.SortBy))
             {
                 if (query.SortBy.Equals("Symbol", StringComparison.OrdinalIgnoreCase))
                 {
-                    stocks = query.IsDecsending ? stocks.OrderByDescending(s => s.Sympol) : stocks.OrderBy(s => s.Sympol);
+                    stocks = query.IsDecsending ? stocks.OrderByDescending(s => s.Symbol) : stocks.OrderBy(s => s.Symbol);
                 }
             }
 
@@ -73,7 +73,7 @@ namespace api.Repository
 
         public async Task<Stock?> GetBySymbolAsync(string symbol)
         {
-            return await _context.Stocks.FirstOrDefaultAsync(s => s.Sympol == symbol);
+            return await _context.Stocks.FirstOrDefaultAsync(s => s.Symbol == symbol);
         }
 
         public Task<bool> StockExists(int id)
@@ -89,7 +89,7 @@ namespace api.Repository
                 return null;
             }
 
-            exisitingStock.Sympol = stockDto.Sympol;
+            exisitingStock.Symbol = stockDto.Symbol;
             exisitingStock.CompanyName = stockDto.CompanyName;
             exisitingStock.Purchase = stockDto.Purchase;
             exisitingStock.LastDiv= stockDto.LastDiv;
