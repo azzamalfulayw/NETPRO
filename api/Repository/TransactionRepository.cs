@@ -35,7 +35,7 @@ namespace api.Repository
 
             if (!string.IsNullOrWhiteSpace(query.StockSymbol))
             {
-                transactions = transactions.Where(t => t.Stock.Sympol.Contains(query.StockSymbol));
+                transactions = transactions.Where(t => t.Stock.Symbol.Contains(query.StockSymbol));
             }
 
             if (query.Type.HasValue)
@@ -92,7 +92,7 @@ namespace api.Repository
 
             var result = new List<RealizedGainLossDto>();
 
-            var groupedByStock = transactions.GroupBy(t => new { t.StockId, t.Stock.Sympol, t.Stock.CompanyName });
+            var groupedByStock = transactions.GroupBy(t => new { t.StockId, t.Stock.Symbol, t.Stock.CompanyName });
 
             foreach (var group in groupedByStock)
             {
@@ -123,7 +123,7 @@ namespace api.Repository
                 result.Add(new RealizedGainLossDto
                 {
                     StockId = group.Key.StockId,
-                    Symbol = group.Key.Sympol,
+                    Symbol = group.Key.Symbol,
                     CompanyName = group.Key.CompanyName,
                     RealizedGainLoss = realizedGainLoss
                 });
@@ -171,7 +171,7 @@ namespace api.Repository
 
             if (!string.IsNullOrWhiteSpace(query.StockSymbol))
             {
-                transactions = transactions.Where(t => t.Stock.Sympol.Contains(query.StockSymbol));
+                transactions = transactions.Where(t => t.Stock.Symbol.Contains(query.StockSymbol));
             }
 
             if (query.Type.HasValue)

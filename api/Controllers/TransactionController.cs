@@ -2,19 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using api.Data;
-using api.Interfaces;
 using api.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
-using Microsoft.EntityFrameworkCore;
 using api.Extensions;
 using api.Dtos.Transaction;
 using api.Helpers;
 using System.Text;
-
+using MediatR;
+using api.Features.Transaction.Queries;
+using api.Features.Transaction.Commands;
 
 namespace api.Controllers
 {
@@ -23,16 +21,12 @@ namespace api.Controllers
     public class TransactionController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;
-        private readonly ITransactionRepository _transactionRepo;
-        private readonly IStockRepository _stockRepo;
-        private readonly ApplicationDBContext _context;
-        public TransactionController(UserManager<AppUser> userManager, ITransactionRepository transactionRepo,
-        IStockRepository stockRepo, ApplicationDBContext context)
+        private readonly IMediator _mediator;
+
+        public TransactionController(UserManager<AppUser> userManager, IMediator mediator)
         {
             _userManager = userManager;
-            _transactionRepo = transactionRepo;
-            _stockRepo = stockRepo;
-            _context = context;
+            _mediator = mediator;
         }
 
         [HttpGet]
@@ -42,15 +36,14 @@ namespace api.Controllers
             var username = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(username);
 
-            if (appUser == null)
-                return Unauthorized();
+            if (appUser == null) return Unauthorized();
 
-            var transactions = await _transactionRepo.GetUserTransactionsAsync(appUser, query);
+            var transactions = await _mediator.Send(new GetUserTransactionsQuery { User = appUser, Query = query });
             var transactionDtos = transactions.Select(t => new TransactionDto
             {
-               Id = t.Id,
+                Id = t.Id,
                 StockId = t.StockId,
-                Symbol = t.Stock.Sympol,
+                Symbol = t.Stock.Symbol,
                 CompanyName = t.Stock.CompanyName,
                 Type = t.Type.ToString(),
                 Quantity = t.Quantity,
@@ -71,22 +64,18 @@ namespace api.Controllers
             var username = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(username);
 
-            if (appUser == null)
-                return Unauthorized();
+            if (appUser == null) return Unauthorized();
 
-            var transaction = await _transactionRepo.GetByIdAsync(id);
+            var transaction = await _mediator.Send(new GetTransactionByIdQuery { Id = id });
 
-            if (transaction == null)
-                return NotFound("Transaction not found");
-
-            if (transaction.AppUserId != appUser.Id)
-                return Unauthorized();
+            if (transaction == null) return NotFound("Transaction not found");
+            if (transaction.AppUserId != appUser.Id) return Unauthorized();
 
             var transactionDto = new TransactionDto
             {
                 Id = transaction.Id,
                 StockId = transaction.StockId,
-                Symbol = transaction.Stock.Sympol,
+                Symbol = transaction.Stock.Symbol,
                 CompanyName = transaction.Stock.CompanyName,
                 Type = transaction.Type.ToString(),
                 Quantity = transaction.Quantity,
@@ -107,73 +96,15 @@ namespace api.Controllers
             var username = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(username);
 
-            if (appUser == null)
-                return Unauthorized();
+            if (appUser == null) return Unauthorized();
 
-            if (transactionDto.Quantity <= 0)
-                return BadRequest("Quantity must be greater than 0");
-
-            if (transactionDto.PricePerShare <= 0)
-                return BadRequest("Price per share must be greater than 0");
-
-            var stock = await _stockRepo.GetByIdAsync(transactionDto.StockId);
-
-            if (stock == null)
-                return NotFound("Stock not found");
-
-            var portfolioItem = await _context.portfolios
-                .FirstOrDefaultAsync(p => p.AppUserId == appUser.Id && p.StockId == transactionDto.StockId);
-
-            if (transactionDto.Type == TransactionType.Sell)
+            var result = await _mediator.Send(new CreateTransactionCommand { AppUser = appUser, TransactionDto = transactionDto });
+            
+            if (result.StartsWith("Error"))
             {
-                if (portfolioItem == null || portfolioItem.Quantity < transactionDto.Quantity)
-                    return BadRequest("You do not own enough shares to sell");
+                if (result.Contains("not found")) return NotFound(result);
+                return BadRequest(result);
             }
-
-            var transaction = new Transaction
-            {
-                AppUserId = appUser.Id,
-                StockId = transactionDto.StockId,
-                Type = transactionDto.Type,
-                Quantity = transactionDto.Quantity,
-                PricePerShare = transactionDto.PricePerShare,
-                TotalAmount = transactionDto.Quantity * transactionDto.PricePerShare,
-                TransactionDate = transactionDto.TransactionDate ?? DateTime.UtcNow,
-                Category = transactionDto.Category,
-                Notes = transactionDto.Notes
-            };
-
-            await _transactionRepo.CreateAsync(transaction);
-
-            if (transactionDto.Type == TransactionType.Buy)
-            {
-                if (portfolioItem == null)
-                {
-                    portfolioItem = new Portfolio
-                    {
-                        AppUserId = appUser.Id,
-                        StockId = transactionDto.StockId,
-                        Quantity = transactionDto.Quantity
-                    };
-
-                    await _context.portfolios.AddAsync(portfolioItem);
-                }
-                else
-                {
-                    portfolioItem.Quantity += transactionDto.Quantity;
-                }
-            }
-            else if (transactionDto.Type == TransactionType.Sell)
-            {
-                portfolioItem.Quantity -= transactionDto.Quantity;
-
-                if (portfolioItem.Quantity == 0)
-                {
-                    _context.portfolios.Remove(portfolioItem);
-                }
-            }
-
-            await _context.SaveChangesAsync();
 
             return Ok("Transaction created successfully");
         }
@@ -185,10 +116,9 @@ namespace api.Controllers
             var username = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(username);
 
-            if (appUser == null)
-                return Unauthorized();
+            if (appUser == null) return Unauthorized();
 
-            var summary = await _transactionRepo.GetUserSummaryAsync(appUser);
+            var summary = await _mediator.Send(new GetUserSummaryQuery { User = appUser });
 
             return Ok(summary);
         }
@@ -200,16 +130,15 @@ namespace api.Controllers
             var username = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(username);
 
-            if (appUser == null)
-                return Unauthorized();
+            if (appUser == null) return Unauthorized();
 
-            var transactions = await _transactionRepo.GetUserTransactionsForStockAsync(appUser, stockId);
+            var transactions = await _mediator.Send(new GetTransactionsForStockQuery { User = appUser, StockId = stockId });
 
             var transactionDtos = transactions.Select(t => new TransactionDto
             {
                 Id = t.Id,
                 StockId = t.StockId,
-                Symbol = t.Stock.Sympol,
+                Symbol = t.Stock.Symbol,
                 CompanyName = t.Stock.CompanyName,
                 Type = t.Type.ToString(),
                 Quantity = t.Quantity,
@@ -230,10 +159,9 @@ namespace api.Controllers
             var username = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(username);
 
-            if (appUser == null)
-                return Unauthorized();
+            if (appUser == null) return Unauthorized();
 
-            var result = await _transactionRepo.GetRealizedGainLossAsync(appUser);
+            var result = await _mediator.Send(new GetRealizedGainLossQuery { User = appUser });
 
             return Ok(result);
         }
@@ -245,10 +173,9 @@ namespace api.Controllers
             var username = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(username);
 
-            if (appUser == null)
-                return Unauthorized();
+            if (appUser == null) return Unauthorized();
 
-            var transactions = await _transactionRepo.GetAllUserTransactionsForExportAsync(appUser, query);
+            var transactions = await _mediator.Send(new GetAllUserTransactionsForExportQuery { User = appUser, Query = query });
 
             var builder = new StringBuilder();
             builder.AppendLine("Id,StockId,Symbol,CompanyName,Type,Category,Quantity,PricePerShare,TotalAmount,TransactionDate,Notes");
@@ -257,7 +184,7 @@ namespace api.Controllers
             {
                 var notes = t.Notes?.Replace(",", " ") ?? "";
                 builder.AppendLine(
-                    $"{t.Id},{t.StockId},{t.Stock.Sympol},{t.Stock.CompanyName},{t.Type},{t.Category},{t.Quantity},{t.PricePerShare},{t.TotalAmount},{t.TransactionDate:yyyy-MM-dd HH:mm:ss},{notes}"
+                    $"{t.Id},{t.StockId},{t.Stock.Symbol},{t.Stock.CompanyName},{t.Type},{t.Category},{t.Quantity},{t.PricePerShare},{t.TotalAmount},{t.TransactionDate:yyyy-MM-dd HH:mm:ss},{notes}"
                 );
             }
 
@@ -265,6 +192,5 @@ namespace api.Controllers
 
             return File(bytes, "text/csv", "transactions.csv");
         }
-
     }
 }

@@ -47,7 +47,7 @@ namespace api.Repository
             .Select(w => new WatchListDto
             {
                 StockId = w.StockId,
-                Symbol = w.Stock.Sympol,
+                Symbol = w.Stock.Symbol,
                 CompanyName = w.Stock.CompanyName,
                 Purchase = w.Stock.Purchase,
                 LastDiv = w.Stock.LastDiv,

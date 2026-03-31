@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Useful Notes - NETPRO</title>
+    <style>
+        /* Modern CSS */
+        body { font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.6; color: #333; max-width: 1000px; margin: 0 auto; padding: 20px; background-color: #f4f7f6; }
+        h1, h2, h3 { color: #2c3e50; }
+        .card { background: #fff; border-radius: 8px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-top: 4px solid #f39c12; }
+        .nav-link { display: inline-block; margin-bottom: 20px; color: #3498db; text-decoration: none; font-weight: bold; }
+        .nav-link:hover { text-decoration: underline; }
+        pre { background: #282c34; color: #abb2bf; padding: 15px; border-radius: 5px; overflow-x: auto; font-family: monospace; }
+        code { background: #e9ecef; color: #d63384; padding: 2px 4px; border-radius: 3px; font-family: monospace; }
+        pre code { background: transparent; color: inherit; padding: 0; }
+    </style>
+</head>
+<body>
+    <a href="updates.html" class="nav-link">← Back to Hub</a>
+    
+    <h1>📝 Useful Notes & Snippets</h1>
+    <p>A collection of automation tasks, terminal commands, and specific methods used to maintain the NETPRO codebase.</p>
+
+    <div class="card">
+        <h3>PowerShell Global Find & Replace Script</h3>
+        <p>This script is basically a "Regex Find & Replace" execution engine that runs directly against your hard drive. It is extremely powerful for fixing systemic typos or globally renaming variables across thousands of files instantly without breaking binaries or compilation folders.</p>
+        
+        <h4>How it Works:</h4>
+        <ul>
+            <li><code>Get-ChildItem -Recurse -File -Filter "*.cs"</code> dynamically searches for every C# file in the source directory.</li>
+            <li><code>Where-Object</code> explicitly filters out locked/build directories like <code>bin</code>, <code>obj</code>, and <code>Migrations</code> so we don't accidentally corrupt executable builds or Database History.</li>
+            <li><code>Get-Content -Raw</code> loads the entire file into memory as a singular string.</li>
+            <li><code>-replace</code> executes a fast string replacement for target words.</li>
+            <li><code>Set-Content -NoNewline</code> writes the patched string directly back into the hard drive transparently, overriding the old content.</li>
+        </ul>
+
+        <h4>The Script:</h4>
+        <pre><code>$files = Get-ChildItem -Path ".\api" -Recurse -File -Filter "*.cs" | Where-Object { $_.DirectoryName -notmatch "Migrations" -and $_.DirectoryName -notmatch "obj" -and $_.DirectoryName -notmatch "bin" }
+foreach ($file in $files) {
+    $text = Get-Content $file.FullName -Raw
+    $modified = $false
+    
+    # Add your target words here
+    if ($text -match "OldSpelling") {
+        $text = $text -replace "OldSpelling","NewSpelling"
+        $modified = $true
+    }
+    
+    if ($modified) {
+        Set-Content -Path $file.FullName -Value $text -NoNewline
+    }
+}</code></pre>
+
+        <h4>How to Run in the Future:</h4>
+        <p>Save the snippet above into a file named <code>replace.ps1</code> at the root of your project, alter the strings to what you need, and then execute <code>.\replace.ps1</code> inside a PowerShell terminal instance.</p>
+    </div>
+
+</body>
+</html>

@@ -10,7 +10,7 @@ namespace api.Models
     public class Stock
     {
         public int Id { get; set; }
-        public string Sympol { get; set; } = string.Empty;
+        public string Symbol { get; set; } = string.Empty;
         public string CompanyName { get; set; } = string.Empty;
         [Column(TypeName = "decimal(18,2)")]
         public decimal Purchase { get; set; }

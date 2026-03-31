@@ -5,12 +5,13 @@ using System.Threading.Tasks;
 using api.Extensions;
 using api.Interfaces;
 using api.Models;
+using api.Features.Portfolio.Queries;
+using api.Features.Portfolio.Commands;
+using api.Features.Stock.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualBasic;
-using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 
 namespace api.Controllers
 {
@@ -19,21 +20,21 @@ namespace api.Controllers
     public class PortfolioController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;
-        private readonly IStockRepository _stockRepo;
-        private readonly IPortfolioRepository _portfolioRepo;
-        public PortfolioController(UserManager<AppUser> userManager, IStockRepository stockRepo, IPortfolioRepository portfolioRepo)
+        private readonly IMediator _mediator;
+
+        public PortfolioController(UserManager<AppUser> userManager, IMediator mediator)
         {
             _userManager = userManager;
-            _stockRepo = stockRepo;
-            _portfolioRepo = portfolioRepo;
+            _mediator = mediator;
         }
+
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> GetUserPortfolio()
         {
             var username = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(username);
-            var userPortfolio = await _portfolioRepo.GetUserPortfolio(appUser);
+            var userPortfolio = await _mediator.Send(new GetUserPortfolioQuery { User = appUser });
             return Ok(userPortfolio);
         }
 
@@ -43,14 +44,13 @@ namespace api.Controllers
         {
             var username = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(username);
-            var stock = await _stockRepo.GetBySymbolAsync(symbol);
+            var stock = await _mediator.Send(new GetStockBySymbolQuery { Symbol = symbol });
 
-            if (stock == null)
-                return BadRequest("Stock not found!");
+            if (stock == null) return BadRequest("Stock not found!");
             
-            var userPortfolio = await _portfolioRepo.GetUserPortfolio(appUser);
+            var userPortfolio = await _mediator.Send(new GetUserPortfolioQuery { User = appUser });
 
-            if (userPortfolio.Any(e => e.Sympol.ToLower() == symbol.ToLower()))
+            if (userPortfolio.Any(e => e.Symbol.ToLower() == symbol.ToLower()))
                 return BadRequest("Cannot add same stock to portfolio");
 
             var portfolioModel = new Portfolio
@@ -59,16 +59,9 @@ namespace api.Controllers
                 AppUserId = appUser.Id
             };
 
-            await _portfolioRepo.CreateAsync(portfolioModel);
+            await _mediator.Send(new CreatePortfolioCommand { Portfolio = portfolioModel });
 
-            if(portfolioModel == null)
-            {
-                return StatusCode(500, "Could not create");
-            }
-            else
-            {
-                return Created();
-            }
+            return Created();
         }
 
         [HttpDelete]
@@ -78,13 +71,13 @@ namespace api.Controllers
             var username = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(username);
 
-            var userPortfolio = await _portfolioRepo.GetUserPortfolio(appUser);
+            var userPortfolio = await _mediator.Send(new GetUserPortfolioQuery { User = appUser });
 
-            var filteredstock = userPortfolio.Where(s=> s.Sympol.ToLower() == symbol.ToLower()).ToList();
+            var filteredstock = userPortfolio.Where(s => s.Symbol.ToLower() == symbol.ToLower()).ToList();
 
             if (filteredstock.Count() == 1)
             {
-                await _portfolioRepo.DeletePortfolio(appUser, symbol);
+                await _mediator.Send(new DeletePortfolioCommand { AppUser = appUser, Symbol = symbol });
             }
             else
             {
