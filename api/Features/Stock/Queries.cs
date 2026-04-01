@@ -49,7 +49,11 @@ namespace api.Features.Stock.Queries
         public GetStockByIdHandler(ApplicationDBContext context) => _context = context;
         public async Task<api.Models.Stock?> Handle(GetStockByIdQuery request, CancellationToken cancellationToken)
         {
-            return await _context.Stocks.Include(c => c.Comments).FirstOrDefaultAsync(i => i.Id == request.Id, cancellationToken);
+            return await _context.Stocks
+                .Include(c => c.Comments)
+                    .ThenInclude(a => a.AppUser)
+                .Include(r => r.Ratings)
+                .FirstOrDefaultAsync(i => i.Id == request.Id, cancellationToken);
         }
     }
 
@@ -64,7 +68,11 @@ namespace api.Features.Stock.Queries
         public GetStockBySymbolHandler(ApplicationDBContext context) => _context = context;
         public async Task<api.Models.Stock?> Handle(GetStockBySymbolQuery request, CancellationToken cancellationToken)
         {
-            return await _context.Stocks.FirstOrDefaultAsync(s => s.Symbol == request.Symbol, cancellationToken);
+            return await _context.Stocks
+                .Include(c => c.Comments)
+                    .ThenInclude(a => a.AppUser)
+                .Include(r => r.Ratings)
+                .FirstOrDefaultAsync(s => s.Symbol == request.Symbol, cancellationToken);
         }
     }
 

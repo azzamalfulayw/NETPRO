@@ -59,7 +59,7 @@ namespace api.Features.Transaction.Commands
             {
                 if (portfolioItem == null)
                 {
-                    portfolioItem = new Portfolio
+                    portfolioItem = new api.Models.Portfolio
                     {
                         AppUserId = appUser.Id,
                         StockId = transactionDto.StockId,

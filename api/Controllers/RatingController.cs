@@ -11,8 +11,8 @@ using api.Features.Rating.Queries;
 using api.Features.Rating.Commands;
 using api.Features.Stock.Queries;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using api.Interfaces;
 
 namespace api.Controllers
 {
@@ -21,12 +21,12 @@ namespace api.Controllers
     public class RatingController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly UserManager<AppUser> _userManager;
+        private readonly IUserResolverService _userResolverService;
 
-        public RatingController(IMediator mediator, UserManager<AppUser> userManager)
+        public RatingController(IMediator mediator, IUserResolverService userResolverService)
         {
             _mediator = mediator;
-            _userManager = userManager;
+            _userResolverService = userResolverService;
         }
         
         [HttpGet]
@@ -58,8 +58,7 @@ namespace api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
 
             if (appUser == null) return Unauthorized();
 
@@ -84,8 +83,7 @@ namespace api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
 
             if (appUser == null) return Unauthorized();
 
@@ -103,13 +101,18 @@ namespace api.Controllers
 
         [HttpDelete]
         [Route ("{id:int}")]
+        [Authorize]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
             if(!ModelState.IsValid) return BadRequest(ModelState);
 
-            var ratingModel = await _mediator.Send(new DeleteRatingCommand { Id = id });
+            var appUser = await _userResolverService.GetUserAsync();
+            var existingRating = await _mediator.Send(new GetRatingByIdQuery { Id = id });
 
-            if(ratingModel == null) return NotFound("Rating does not exist");
+            if (existingRating == null) return NotFound("Rating does not exist");
+            if (existingRating.AppUserId != appUser.Id) return Forbid();
+
+            var ratingModel = await _mediator.Send(new DeleteRatingCommand { Id = id });
 
             return Ok(ratingModel.ToRatingDto());
         }

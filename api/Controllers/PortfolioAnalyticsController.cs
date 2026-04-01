@@ -2,7 +2,6 @@ using api.Extensions;
 using api.Interfaces;
 using api.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
@@ -13,21 +12,20 @@ namespace api.Controllers
     public class PortfolioAnalyticsController : ControllerBase
     {
         private readonly IPortfolioAnalyticsService _portfolioAnalyticsService;
-        private readonly UserManager<AppUser> _userManager;
+        private readonly IUserResolverService _userResolverService;
 
         public PortfolioAnalyticsController(
             IPortfolioAnalyticsService portfolioAnalyticsService,
-            UserManager<AppUser> userManager)
+            IUserResolverService userResolverService)
         {
             _portfolioAnalyticsService = portfolioAnalyticsService;
-            _userManager = userManager;
+            _userResolverService = userResolverService;
         }
 
         [HttpGet("performance")]
         public async Task<IActionResult> GetPerformance()
         {
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
 
             if (appUser == null)
                 return Unauthorized();
@@ -39,8 +37,7 @@ namespace api.Controllers
         [HttpGet("history")]
         public async Task<IActionResult> GetHistory([FromQuery] int days = 30)
         {
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
 
             if (appUser == null)
                 return Unauthorized();
@@ -52,8 +49,7 @@ namespace api.Controllers
         [HttpGet("diversification")]
         public async Task<IActionResult> GetDiversification()
         {
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
 
             if (appUser == null)
                 return Unauthorized();

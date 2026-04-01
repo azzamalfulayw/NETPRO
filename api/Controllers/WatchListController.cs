@@ -11,7 +11,6 @@ using api.Features.WatchList.Commands;
 using api.Features.Stock.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using RouteAttribute = Microsoft.AspNetCore.Mvc.RouteAttribute;
 
@@ -21,12 +20,12 @@ namespace api.Controllers
     [ApiController]
     public class WatchListController : ControllerBase
     {
-        private readonly UserManager<AppUser> _userManager;
+        private readonly IUserResolverService _userResolverService;
         private readonly IMediator _mediator;
 
-        public WatchListController(UserManager<AppUser> userManager, IMediator mediator)
+        public WatchListController(IUserResolverService userResolverService, IMediator mediator)
         {
-            _userManager = userManager;
+            _userResolverService = userResolverService;
             _mediator = mediator;
         }
 
@@ -34,8 +33,7 @@ namespace api.Controllers
         [Authorize]
         public async Task<IActionResult> GetUserWatchList()
         {
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
 
             if (appUser == null) return Unauthorized();
 
@@ -50,8 +48,7 @@ namespace api.Controllers
             [FromRoute] int stockId,
             [FromBody] CteateWatchListRequestDto dto)
         {
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
 
             if (appUser == null) return Unauthorized();
 
@@ -82,8 +79,7 @@ namespace api.Controllers
         [Route("{stockId:int}")]
         public async Task<IActionResult> RemoveFromWatchList([FromRoute] int stockId)
         {
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
 
             if (appUser == null) return Unauthorized();
 

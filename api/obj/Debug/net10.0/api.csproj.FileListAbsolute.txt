@@ -56,7 +56,6 @@ C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\bin\Debug\net10.0\Azure.Core.dll
 C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\bin\Debug\net10.0\Azure.Identity.dll
 C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\bin\Debug\net10.0\Humanizer.dll
 C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
-C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\bin\Debug\net10.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
 C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\bin\Debug\net10.0\Microsoft.AspNetCore.JsonPatch.dll
 C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\bin\Debug\net10.0\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
 C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\bin\Debug\net10.0\Microsoft.Bcl.AsyncInterfaces.dll
@@ -219,3 +218,5 @@ C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\obj\Debug\net10.0\api.pdb
 C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\obj\Debug\net10.0\api.genruntimeconfig.cache
 C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\obj\Debug\net10.0\ref\api.dll
 C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\obj\Debug\net10.0\api.sourcelink.json
+c:\Users\Asus\OneDrive\Desktop\Train\netpro\api\bin\Debug\net10.0\MediatR.dll
+c:\Users\Asus\OneDrive\Desktop\Train\netpro\api\bin\Debug\net10.0\MediatR.Contracts.dll

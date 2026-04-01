@@ -4,7 +4,6 @@ using api.Models;
 using api.Repository;
 using api.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
@@ -26,14 +25,24 @@ builder.Services.AddSwaggerGen(option =>
         Version = "v1"
     });
 
-    option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    var keycloakAuthority = builder.Configuration["Keycloak:Authority"];
+
+    option.AddSecurityDefinition("OAuth2", new OpenApiSecurityScheme
     {
-        In = ParameterLocation.Header,
-        Description = "Please enter a valid token",
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        BearerFormat = "JWT",
-        Scheme = "Bearer"
+        Type = SecuritySchemeType.OAuth2,
+        Flows = new OpenApiOAuthFlows
+        {
+            AuthorizationCode = new OpenApiOAuthFlow
+            {
+                AuthorizationUrl = new Uri($"{keycloakAuthority}/protocol/openid-connect/auth"),
+                TokenUrl = new Uri($"{keycloakAuthority}/protocol/openid-connect/token"),
+                Scopes = new Dictionary<string, string>
+                {
+                    { "openid", "OpenID Connect" },
+                    { "profile", "User profile" }
+                }
+            }
+        }
     });
 
     option.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -44,7 +53,7 @@ builder.Services.AddSwaggerGen(option =>
                 Reference = new OpenApiReference
                 {
                     Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
+                    Id = "OAuth2"
                 }
             },
             Array.Empty<string>()
@@ -58,16 +67,6 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
 });
 
-builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
-{
-    options.Password.RequireDigit = true;
-    options.Password.RequireUppercase = true;
-    options.Password.RequireLowercase = true;
-    options.Password.RequireNonAlphanumeric = true;
-    options.Password.RequiredLength = 8;
-})
-.AddEntityFrameworkStores<ApplicationDBContext>();
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -79,22 +78,27 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    options.Authority = builder.Configuration["Keycloak:Authority"];
+    options.Audience = builder.Configuration["Keycloak:Audience"];
+    options.RequireHttpsMetadata = false;
+
+    var audiences = builder.Configuration["Keycloak:Audience"]?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? Array.Empty<string>();
+    
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
-        ValidIssuer = builder.Configuration["JWT:Issuer"],
+        ValidIssuer = builder.Configuration["Keycloak:Authority"],
         ValidateAudience = true,
-        ValidAudience = builder.Configuration["JWT:Audience"],
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(
-            System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JWT:SigningKey"]!)
-        )
+        ValidAudiences = audiences,
+        NameClaimType = "preferred_username",
+        RoleClaimType = "roles"
     };
 });
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
         
-builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IUserResolverService, UserResolverService>();
 
 builder.Services.Configure<StockApiSettings>(builder.Configuration.GetSection("StockApi"));
 builder.Services.AddMemoryCache();
@@ -108,7 +112,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.OAuthClientId("netpro-swagger");
+        options.OAuthUsePkce();
+    });
 }
 
 app.UseHttpsRedirection();
