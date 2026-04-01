@@ -10,7 +10,6 @@ using api.Features.Portfolio.Commands;
 using api.Features.Stock.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
@@ -19,12 +18,12 @@ namespace api.Controllers
     [ApiController]
     public class PortfolioController : ControllerBase
     {
-        private readonly UserManager<AppUser> _userManager;
+        private readonly IUserResolverService _userResolverService;
         private readonly IMediator _mediator;
 
-        public PortfolioController(UserManager<AppUser> userManager, IMediator mediator)
+        public PortfolioController(IUserResolverService userResolverService, IMediator mediator)
         {
-            _userManager = userManager;
+            _userResolverService = userResolverService;
             _mediator = mediator;
         }
 
@@ -32,8 +31,7 @@ namespace api.Controllers
         [Authorize]
         public async Task<IActionResult> GetUserPortfolio()
         {
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
             var userPortfolio = await _mediator.Send(new GetUserPortfolioQuery { User = appUser });
             return Ok(userPortfolio);
         }
@@ -42,8 +40,7 @@ namespace api.Controllers
         [Authorize]
         public async Task<IActionResult> AddPortfolio(string symbol)
         {
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
             var stock = await _mediator.Send(new GetStockBySymbolQuery { Symbol = symbol });
 
             if (stock == null) return BadRequest("Stock not found!");
@@ -68,8 +65,7 @@ namespace api.Controllers
         [Authorize]
         public async Task<IActionResult> DeletePortfolio(string symbol)
         {
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
 
             var userPortfolio = await _mediator.Send(new GetUserPortfolioQuery { User = appUser });
 

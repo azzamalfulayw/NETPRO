@@ -7,11 +7,12 @@ using api.Extensions;
 using api.Mappers;
 using api.Models;
 using MediatR;
-using api.Features.Comment.Queries;
 using api.Features.Comment.Commands;
-using api.Features.Stock.Queries;
-using Microsoft.AspNetCore.Identity;
+using api.Features.Comment.Queries;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using api.Features.Stock.Queries;
+using api.Interfaces;
 
 namespace api.Controllers
 {
@@ -20,12 +21,12 @@ namespace api.Controllers
     public class CommentController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly UserManager<AppUser> _userManager;
+        private readonly IUserResolverService _userResolverService;
 
-        public CommentController(IMediator mediator, UserManager<AppUser> userManager)
+        public CommentController(IMediator mediator, IUserResolverService userResolverService)
         {
             _mediator = mediator;
-            _userManager = userManager;
+            _userResolverService = userResolverService;
         }
 
         [HttpGet]
@@ -51,6 +52,7 @@ namespace api.Controllers
         }
 
         [HttpPost("{stockId:int}")]
+        [Authorize]
         public async Task<IActionResult> Create([FromRoute] int stockId, [FromBody] CreateCommentDto commentDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -58,8 +60,7 @@ namespace api.Controllers
             var stockExists = await _mediator.Send(new CheckStockExistsQuery { Id = stockId });
             if (!stockExists) return BadRequest("Stock does not exist");
 
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
 
             var commentModel = commentDto.ToCommentFromCreate(stockId);
             commentModel.AppUserId = appUser.Id;
@@ -71,9 +72,16 @@ namespace api.Controllers
 
         [HttpPut]
         [Route("{id:int}")]
+        [Authorize]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateCommentRequestDto updateDto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var appUser = await _userResolverService.GetUserAsync();
+            var existingComment = await _mediator.Send(new GetCommentByIdQuery { Id = id });
+
+            if (existingComment == null) return NotFound("Comment not found");
+            if (existingComment.AppUserId != appUser.Id) return Forbid();
 
             var comment = await _mediator.Send(new UpdateCommentCommand { Id = id, CommentModel = updateDto.ToCommentFromUpdate() });
 
@@ -84,13 +92,18 @@ namespace api.Controllers
 
         [HttpDelete]
         [Route("{id:int}")]
+        [Authorize]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            var appUser = await _userResolverService.GetUserAsync();
+            var existingComment = await _mediator.Send(new GetCommentByIdQuery { Id = id });
+
+            if (existingComment == null) return NotFound("Comment does not exist");
+            if (existingComment.AppUserId != appUser.Id) return Forbid();
                 
             var commentModel = await _mediator.Send(new DeleteCommentCommand { Id = id });
-
-            if (commentModel == null) return NotFound("Comment does not exist");
 
             return Ok(commentModel.ToCommentDto());
         }

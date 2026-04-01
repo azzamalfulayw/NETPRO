@@ -4,8 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using api.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using api.Interfaces;
 using api.Extensions;
 using api.Dtos.Transaction;
 using api.Helpers;
@@ -20,12 +20,12 @@ namespace api.Controllers
     [ApiController]
     public class TransactionController : ControllerBase
     {
-        private readonly UserManager<AppUser> _userManager;
+        private readonly IUserResolverService _userResolverService;
         private readonly IMediator _mediator;
 
-        public TransactionController(UserManager<AppUser> userManager, IMediator mediator)
+        public TransactionController(IUserResolverService userResolverService, IMediator mediator)
         {
-            _userManager = userManager;
+            _userResolverService = userResolverService;
             _mediator = mediator;
         }
 
@@ -33,8 +33,7 @@ namespace api.Controllers
         [Authorize]
         public async Task<IActionResult> GetUserTransactions([FromQuery] TransactionQueryObject query)
         {
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
 
             if (appUser == null) return Unauthorized();
 
@@ -61,8 +60,7 @@ namespace api.Controllers
         [Authorize]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
 
             if (appUser == null) return Unauthorized();
 
@@ -93,8 +91,7 @@ namespace api.Controllers
         [Authorize]
         public async Task<IActionResult> CreateTransaction([FromBody] CreateTransactionDto transactionDto)
         {
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
 
             if (appUser == null) return Unauthorized();
 
@@ -113,8 +110,7 @@ namespace api.Controllers
         [Authorize]
         public async Task<IActionResult> GetSummary()
         {
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
 
             if (appUser == null) return Unauthorized();
 
@@ -127,8 +123,7 @@ namespace api.Controllers
         [Authorize]
         public async Task<IActionResult> GetTransactionsForStock([FromRoute] int stockId)
         {
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
 
             if (appUser == null) return Unauthorized();
 
@@ -156,8 +151,7 @@ namespace api.Controllers
         [Authorize]
         public async Task<IActionResult> GetRealizedGainLoss()
         {
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
 
             if (appUser == null) return Unauthorized();
 
@@ -170,8 +164,7 @@ namespace api.Controllers
         [Authorize]
         public async Task<IActionResult> ExportTransactionsToCsv([FromQuery] TransactionQueryObject query)
         {
-            var username = User.GetUsername();
-            var appUser = await _userManager.FindByNameAsync(username);
+            var appUser = await _userResolverService.GetUserAsync();
 
             if (appUser == null) return Unauthorized();
 
