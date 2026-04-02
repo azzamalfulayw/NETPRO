@@ -16,7 +16,7 @@ namespace api.Repository
         {
             _context = context;
         }
-        public async Task<Rating> CreateAsync(Rating ratingModel)
+        public async Task<Rating?> CreateAsync(Rating ratingModel)
         {
             await _context.Ratings.AddAsync(ratingModel);
             await _context.SaveChangesAsync();

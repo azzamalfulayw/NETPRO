@@ -8,7 +8,7 @@ namespace api.Extensions
 {
     public static class ClaimExtensions
     {
-        public static string GetUsername(this ClaimsPrincipal user)
+        public static string? GetUsername(this ClaimsPrincipal user)
         {
             return user.Claims.SingleOrDefault(x => x.Type.Equals("preferred_username"))?.Value 
                    ?? user.Claims.SingleOrDefault(x => x.Type.Equals(ClaimTypes.NameIdentifier))?.Value;

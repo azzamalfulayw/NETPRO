@@ -11,7 +11,7 @@ namespace api.Features.Portfolio.Queries
 {
     public class GetUserPortfolioQuery : IRequest<List<api.Models.Stock>>
     {
-        public AppUser User { get; set; }
+        public required AppUser User { get; set; }
     }
 
     public class GetUserPortfolioHandler : IRequestHandler<GetUserPortfolioQuery, List<api.Models.Stock>>

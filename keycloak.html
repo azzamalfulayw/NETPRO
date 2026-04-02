@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NETPRO Keycloak Migration Technical Record</title>
+    <style>
+        :root { 
+            --primary: #3498db; --secondary: #1e1e1e; --accent: #e67e22; 
+            --bg: #f5f6fa; --card-bg: #ffffff; --text: #2c3e50;
+            --code-bg: #1e1e1e; --code-text: #d4d4d4;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            line-height: 1.6; color: var(--text); 
+            max-width: 1200px; margin: 0 auto; padding: 50px 30px; 
+            background-color: var(--bg); 
+        }
+        h1 { text-align: center; color: var(--secondary); font-size: 2.8rem; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #7f8c8d; font-size: 1.1rem; margin-bottom: 50px; }
+        
+        .section { background: var(--card-bg); padding: 40px; border-radius: 15px; margin-bottom: 35px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        h2 { margin-top: 0; color: var(--secondary); border-bottom: 3px solid #eee; padding-bottom: 12px; font-size: 1.8rem; margin-bottom: 25px; }
+        h3 { color: var(--primary); margin-top: 30px; font-size: 1.4rem; }
+
+        .nav-link { display: inline-block; margin-bottom: 30px; text-decoration: none; color: var(--primary); font-weight: 600; }
+        
+        /* VS Code Style Code Blocks */
+        .code-container { 
+            background: var(--code-bg); color: var(--code-text); 
+            padding: 25px; border-radius: 10px; 
+            font-family: 'Cascadia Code', 'Consolas', monospace; 
+            font-size: 0.95rem; line-height: 1.6;
+            overflow-x: auto; margin: 20px 0; border: 1px solid #333;
+        }
+        .code-keyword { color: #569cd6; } /* blue */
+        .code-type { color: #4ec9b0; }    /* teal */
+        .code-string { color: #ce9178; }  /* salmon */
+        .code-comment { color: #6a9955; } /* green */
+        .code-func { color: #dcdcaa; }    /* yellow */
+        .code-var { color: #9cdcfe; }     /* light blue */
+        .code-attribute { color: #b5cea8; } /* light green */
+
+        .matrix-table { width: 100%; border-collapse: collapse; margin: 25px 0; }
+        .matrix-table th, .matrix-table td { padding: 15px; text-align: left; border-bottom: 1px solid #edf2f7; }
+        .matrix-table th { background: #f8fafc; color: #64748b; font-weight: bold; text-transform: uppercase; font-size: 0.85rem; }
+
+        .tag { display: inline-block; padding: 3px 10px; border-radius: 5px; font-size: 0.8rem; font-weight: bold; margin-right: 8px; }
+        .tag-deleted { background: #fee2e2; color: #ef4444; }
+        .tag-modified { background: #e0f2fe; color: #0ea5e9; }
+        .tag-added { background: #dcfce7; color: #22c55e; }
+
+        .alert { padding: 15px 20px; border-radius: 8px; margin: 20px 0; border-left: 5px solid; }
+        .alert-warning { background: #fffbeb; border-color: #f59e0b; color: #92400e; }
+        .alert-info { background: #eff6ff; border-color: #3b82f6; color: #1e40af; }
+    </style>
+</head>
+<body>
+    <a href="updates.html" class="nav-link">← Back to Project Hub</a>
+    
+    <h1>🔐 Keycloak Migration Technical Record</h1>
+    <p class="subtitle">A detailed engineering log documenting the shift from local ASP.NET Identity to external OIDC.</p>
+
+    <div class="section">
+        <h2>1. Migration Overview</h2>
+        <p>This document records the systematic transition of the <strong>NETPRO API</strong> from a legacy monolithic authentication model to a modern, decentralized identity architecture. The primary objective was to offload credential management, token issuance, and multi-factor authentication (MFA) capabilities to <strong>Keycloak</strong>, transforming the .NET backend into a specialized <strong>Resource Server</strong>.</p>
+    </div>
+
+    <div class="section">
+        <h2>2. Why Keycloak Replaced Local Authentication</h2>
+        <p>The previous architecture relied on <code>Microsoft.AspNetCore.Identity</code> and a custom <code>TokenService</code>. This setup presented several engineering challenges:</p>
+        <ul>
+            <li><strong>Security Overhead</strong>: The API was responsible for password hashing, salt management, and credential storage, increasing the attack surface.</li>
+            <li><strong>Scalability Limitations</strong>: Local identity tables coupled user data with authentication logic, making it difficult to implement SSO across multiple future services.</li>
+            <li><strong>Feature Gap</strong>: Implementing advanced features like social login, user sessions, or automated email verification required significant manual coding.</li>
+        </ul>
+        <p><strong>Keycloak</strong> was adopted to provide an industry-standard OpenID Connect (OIDC) implementation, offering enterprise-grade security and a centralized identity management console.</p>
+    </div>
+
+    <div class="section">
+        <h2>3. Architecture Before and After</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+            <div>
+                <h3>🔴 Before (Legacy)</h3>
+                <p>The API acted as the <strong>Identity Provider</strong> and the <strong>Resource Server</strong>.</p>
+                <ul>
+                    <li><strong>Database</strong>: 7+ Identity tables (AspNetUsers, AspNetRoles, etc.).</li>
+                    <li><strong>Service</strong>: <code>TokenService.cs</code> manually generated JWTs.</li>
+                    <li><strong>Login</strong>: API handled username/password directly JSON-over-HTTP.</li>
+                    <li><strong>Validation</strong>: Validated tokens using a locally stored symmetric Key.</li>
+                </ul>
+            </div>
+            <div>
+                <h3>🟢 After (Modern)</h3>
+                <p>The API acts strictly as a <strong>Resource Server</strong>.</p>
+                <ul>
+                    <li><strong>Authority</strong>: Keycloak manages all credentials and sessions.</li>
+                    <li><strong>Database</strong>: Zero Identity tables. <code>AppUser</code> is a simple domain mapping.</li>
+                    <li><strong>Login</strong>: OAuth2 Authorization Code flow (browser-based redirect).</li>
+                    <li><strong>Validation</strong>: Validates tokens using Keycloak's public keys via discovery (`.well-known`).</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>4. Authentication and Request Flow</h2>
+        <p>The new flow follows the <strong>Authorization Code Flow with PKCE</strong> for the Swagger UI development environment.</p>
+        <ol>
+            <li><strong>Swagger Login</strong>: User clicks "Authorize," redirecting them to the Keycloak login page (localhost:8080).</li>
+            <li><strong>Token Issuance</strong>: Upon successful login, Keycloak issues an <strong>Access Token (JWT)</strong>.</li>
+            <li><strong>API Request</strong>: The browser sends the JWT in the <code>Authorization: Bearer [token]</code> header.</li>
+            <li><strong>JWT Validation</strong>: The .NET middleware validates the signature, issuer, and audience from the token.</li>
+            <li><strong>User Resolution</strong>: The <code>UserResolverService</code> extracts the <code>sub</code> claim. If the user doesn't exist locally, it auto-provisions an <code>AppUser</code> row to maintain database relationships.</li>
+        </ol>
+    </div>
+
+    <div class="section">
+        <h2>5. Implementation Details by File</h2>
+        <p>The following files were central to the technical transition:</p>
+
+        <h3>📄 Program.cs</h3>
+        <p><span class="tag tag-modified">Modified</span> Replaced <code>AddIdentity</code> with <code>AddAuthentication</code> and <code>AddJwtBearer</code>. Configured Swagger to support OAuth2 security definitions.</p>
+        <div class="code-container">
+            <span class="code-comment">// Technical Configuration for JWT Validation</span><br>
+            builder.<span class="code-var">Services</span>.<span class="code-func">AddAuthentication</span>(options => {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;options.<span class="code-var">DefaultAuthenticateScheme</span> = <span class="code-type">JwtBearerDefaults</span>.<span class="code-var">AuthenticationScheme</span>;<br>
+            })<br>
+            .<span class="code-func">AddJwtBearer</span>(options => {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;options.<span class="code-var">Authority</span> = <span class="code-string">"http://localhost:8080/realms/netpro"</span>;<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;options.<span class="code-var">Audience</span> = <span class="code-string">"account,netpro-api,netpro-swagger"</span>;<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;options.<span class="code-var">TokenValidationParameters</span> = <span class="code-keyword">new</span> <span class="code-type">TokenValidationParameters</span> {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-var">ValidateIssuer</span> = <span class="code-keyword">true</span>,<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-var">ValidIssuer</span> = <span class="code-string">"http://localhost:8080/realms/netpro"</span>,<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-var">NameClaimType</span> = <span class="code-string">"preferred_username"</span>,<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-var">RoleClaimType</span> = <span class="code-string">"roles"</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;};<br>
+            });
+        </div>
+
+        <h3>📄 UserResolverService.cs</h3>
+        <p><span class="tag tag-added">Added</span> Acts as the "bridge" between the external Keycloak token and local database entities.</p>
+        <div class="code-container">
+            <span class="code-keyword">public async</span> <span class="code-type">Task</span>&lt;<span class="code-type">AppUser?</span>&gt; <span class="code-func">GetUserAsync</span>() {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">var</span> <span class="code-var">sub</span> = user.<span class="code-func">FindFirst</span>(<span class="code-type">ClaimTypes</span>.<span class="code-var">NameIdentifier</span>)?<span class="code-var">.Value</span>;<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">var</span> <span class="code-var">appUser</span> = <span class="code-keyword">await</span> _context.<span class="code-var">AppUsers</span>.<span class="code-func">FirstOrDefaultAsync</span>(u => u.<span class="code-var">Id</span> == <span class="code-var">sub</span>);<br>
+            <br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">if</span> (<span class="code-var">appUser</span> == <span class="code-keyword">null</span>) {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-var">appUser</span> = <span class="code-keyword">new</span> <span class="code-type">AppUser</span> { <span class="code-var">Id</span> = sub, <span class="code-var">UserName</span> = <span class="code-string">"..."</span> }; <span class="code-comment">// Auto-provisioning logic</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;_context.<span class="code-var">AppUsers</span>.<span class="code-func">Add</span>(appUser);<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">await</span> _context.<span class="code-func">SaveChangesAsync</span>();<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">return</span> <span class="code-var">appUser</span>;<br>
+            }
+        </div>
+
+        <h3>📄 Controller Hardening</h3>
+        <p><span class="tag tag-modified">Modified</span> <code>CommentController.cs</code> and <code>RatingController.cs</code> were updated to use <code>[Authorize]</code> and ownership logic.</p>
+        <div class="code-container">
+            <span class="code-attribute">[HttpDelete]</span><br>
+            <span class="code-attribute">[Authorize]</span><br>
+            <span class="code-keyword">public async</span> <span class="code-type">Task</span>&lt;<span class="code-type">IActionResult</span>&gt; <span class="code-func">Delete</span>(<span class="code-keyword">int</span> <span class="code-var">id</span>) {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">var</span> <span class="code-var">appUser</span> = <span class="code-keyword">await</span> _userResolverService.<span class="code-func">GetUserAsync</span>();<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">var</span> <span class="code-var">existingResource</span> = <span class="code-keyword">await</span> _mediator.<span class="code-func">Send</span>(<span class="code-keyword">new</span> <span class="code-type">GetByIdQuery</span> { <span class="code-var">Id</span> = id });<br>
+            <br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">if</span> (<span class="code-var">existingResource</span>.<span class="code-var">AppUserId</span> != <span class="code-var">appUser</span>.<span class="code-var">Id</span>) <span class="code-keyword">return</span> <span class="code-func">Forbid</span>();<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">// ... delete logic</span><br>
+            }
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>6. Legacy Components Removed</h2>
+        <p>The following technical debt was fully eliminated from the repository:</p>
+        <ul>
+            <li><strong>AccountController / AccountContriller</strong>: Removed entire logic for <code>/login</code> and <code>/register</code>. These endpoints are now unnecessary as Keycloak provides the UI for these flows.</li>
+            <li><strong>TokenService / ITokenService</strong>: Removed the manual JWT generation logic. The API no longer possesses private keys for token signing.</li>
+            <li><strong>Microsoft.AspNetCore.Identity Packages</strong>: Removed <code>Identity.EntityFrameworkCore</code> and <code>Identity.Core</code>. This prevents the "Identity Schema" tables from being generated in migrations.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>7. Authorization and Ownership Hardening</h2>
+        <p>We implemented a strict security matrix to ensure data privacy.</p>
+        <table class="matrix-table">
+            <thead>
+                <tr>
+                    <th>Endpoint</th>
+                    <th>Public?</th>
+                    <th>Ownership Check?</th>
+                    <th>Reasoning</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>GET Stock/Comments/Ratings</td>
+                    <td>✅ Yes</td>
+                    <td>❌ No</td>
+                    <td>Read-only community feed should be open.</td>
+                </tr>
+                <tr>
+                    <td>POST (Creation)</td>
+                    <td>❌ No</td>
+                    <td>❌ No</td>
+                    <td>Anyone authenticated can contribute.</td>
+                </tr>
+                <tr>
+                    <td>PUT (Update)</td>
+                    <td>❌ No</td>
+                    <td>✅ Yes</td>
+                    <td>Prevents users from editing others' comments.</td>
+                </tr>
+                <tr>
+                    <td>DELETE</td>
+                    <td>❌ No</td>
+                    <td>✅ Yes</td>
+                    <td>Only the original author can remove data.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>8. Issues Encountered During Migration</h2>
+        <div class="alert alert-warning">
+            <strong>⚠️ Compile Error: Missing [Authorize] Namespace</strong><br>
+            After applying authorization attributes to <code>CommentController.cs</code>, the build failed because <code>Microsoft.AspNetCore.Authorization</code> was not imported. This was a direct result of the cleanup that removed local Identity dependencies. FIXED by adding the explicit import.
+        </div>
+        <div class="alert alert-info">
+            <strong>ℹ️ Challenge: Multi-Audience Workaround</strong><br>
+            Keycloak tokens by default often include <code>account</code> in the audience, while our API expected <code>netpro-api</code>. This caused 401 Unauthorized errors in early testing. WORKAROUND: Modified <code>appsettings.json</code> to allow a CSV-style list of valid audiences (<code>account,netpro-api,netpro-swagger</code>).
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>9. Verification Status</h2>
+        <table class="matrix-table">
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Status</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Token Discovery</td>
+                    <td>✅ Verified</td>
+                    <td>Authority URL and Metadata successfully fetched.</td>
+                </tr>
+                <tr>
+                    <td>Auto-Provisioning</td>
+                    <td>✅ Verified</td>
+                    <td>User records created locally on First-Login.</td>
+                </tr>
+                <tr>
+                    <td>Swagger OAuth2 Flow</td>
+                    <td>✅ Verified</td>
+                    <td>PKCE login redirect works correctly.</td>
+                </tr>
+                <tr>
+                    <td>Production Issuer Strictness</td>
+                    <td>⏳ Pending</td>
+                    <td>Need to verify HTTPS/Issuer behavior in non-local env.</td>
+                </tr>
+                <tr>
+                    <td>Role Mapping (RBAC)</td>
+                    <td>⏳ Pending</td>
+                    <td>Keycloak role claims not yet mapped to .NET <code>User.IsInRole()</code>.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>10. Remaining Risks and Recommendations</h2>
+        <p>While the migration is technically sound for development, the following items are recommended for the next sprint:</p>
+        <ul>
+            <li><strong>Strict Audience Validation</strong>: Transition from the multi-audience workaround to a proper Keycloak "Audience Mapper" to keep tokens specific to the API.</li>
+            <li><strong>Role Management (RBAC)</strong>: Implement a claim transformation to map Keycloak "Roles" to .NET Claims so that `[Authorize(Roles = "Admin")]` can be utilized.</li>
+            <li><strong>Nullable Cleanup</strong>: Address naming warnings like <code>Task&lt;Rating&gt;</code> in <code>RatingRepository.cs</code> to align with modern C# nullable standards.</li>
+        </ul>
+    </div>
+
+</body>
+</html>

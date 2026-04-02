@@ -107,6 +107,8 @@ namespace api.Controllers
             if(!ModelState.IsValid) return BadRequest(ModelState);
 
             var appUser = await _userResolverService.GetUserAsync();
+            if (appUser == null) return Unauthorized();
+
             var existingRating = await _mediator.Send(new GetRatingByIdQuery { Id = id });
 
             if (existingRating == null) return NotFound("Rating does not exist");
