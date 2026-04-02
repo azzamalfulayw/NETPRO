@@ -17,5 +17,7 @@ namespace api.Dtos.WatchList
         public DateTime AddedOn { get; set; }
         public string? Notes { get; set; }
         public int DaysOnWatchList { get; set; }
+        public decimal AverageRating { get; set; }
+        public int RatingCount { get; set; }
     }
 }

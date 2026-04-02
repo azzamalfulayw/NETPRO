@@ -9,7 +9,7 @@ namespace api.Features.Comment.Commands
 {
     public class CreateCommentCommand : IRequest<api.Models.Comment>
     {
-        public api.Models.Comment Comment { get; set; }
+        public required api.Models.Comment Comment { get; set; }
     }
 
     public class CreateCommentHandler : IRequestHandler<CreateCommentCommand, api.Models.Comment>
@@ -27,7 +27,7 @@ namespace api.Features.Comment.Commands
     public class UpdateCommentCommand : IRequest<api.Models.Comment?>
     {
         public int Id { get; set; }
-        public api.Models.Comment CommentModel { get; set; }
+        public required api.Models.Comment CommentModel { get; set; }
     }
 
     public class UpdateCommentHandler : IRequestHandler<UpdateCommentCommand, api.Models.Comment?>

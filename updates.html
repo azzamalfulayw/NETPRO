@@ -41,6 +41,10 @@
             <h3>📝 Useful Notes</h3>
             <p>Access our private vault of automation scripts, CLI snippets, and advanced project solutions.</p>
         </a>
+        <a href="keycloak.html" class="hub-card" style="border-top: 5px solid #3498db;">
+            <h3>🔐 Keycloak Log</h3>
+            <p>Track our transition from ASP.NET Core Identity to Keycloak Authentication Provider.</p>
+        </a>
     </div>
 
     <div class="rules-box">
@@ -56,7 +60,62 @@
         </ul>
     </div>
 
-    <h2>🔄 Recent General Updates</h2>
+    <div class="card" style="border-left-color: #9b59b6;">
+        <div class="card-header">
+            <h3 class="card-title">Fixed Missing Ratings in Watchlist</h3>
+            <span class="date-badge">2026-04-01</span>
+        </div>
+        <div>
+            <span class="tag">Bug Fix</span>
+            <span class="tag">Watchlist</span>
+        </div>
+        <p>Corrected an issue where <code>AverageRating</code> and <code>RatingCount</code> were missing from the <code>GET /api/watchlist</code> response. Updated <code>WatchListDto</code> and the MediatR query handler to include calculation for stock ratings.</p>
+    </div>
+    <div class="card" style="border-left-color: #2ecc71;">
+        <div class="card-header">
+            <h3 class="card-title">Fixed CommentController Build Issue</h3>
+            <span class="date-badge">2026-04-01</span>
+        </div>
+        <div>
+            <span class="tag">Bug Fix</span>
+            <span class="tag">Security</span>
+        </div>
+        <p>Fixed a compile error in <code>CommentController.cs</code> caused by a missing namespace for <code>[Authorize]</code>. Verified that all other controllers have necessary imports for the Keycloak migration.</p>
+    </div>
+    <div class="card" style="border-left-color: #e74c3c;">
+        <div class="card-header">
+            <h3 class="card-title">Security Hardening & Legacy Cleanup</h3>
+            <span class="date-badge">2026-04-01</span>
+        </div>
+        <div>
+            <span class="tag">Security</span>
+            <span class="tag">Cleanup</span>
+        </div>
+        <p>Finalized the Keycloak migration by removing all legacy Identity code (AccountController, TokenService) and enforcing strict ownership checks on Comments and Ratings.</p>
+    </div>
+    <div class="card" style="border-left-color: #f1c40f;">
+        <div class="card-header">
+            <h3 class="card-title">Fixed Missing Ratings in Stock Details</h3>
+            <span class="date-badge">2026-04-01</span>
+        </div>
+        <div>
+            <span class="tag">Bug Fix</span>
+            <span class="tag">CQRS</span>
+        </div>
+        <p>Fixed an issue where <code>AverageRating</code> and <code>RatingCount</code> were returning zero in <code>GET /api/stock/{id}</code> and <code>GET /api/stock/{symbol}</code> endpoints due to missing Entity Framework includes in the MediatR Query handlers.</p>
+    </div>
+    <div class="card" style="border-left-color: #3498db;">
+        <div class="card-header">
+            <h3 class="card-title">Completed Keycloak Authentication Migration</h3>
+            <span class="date-badge">2026-04-01</span>
+        </div>
+        <div>
+            <span class="tag">Security</span>
+            <span class="tag">Architecture</span>
+        </div>
+        <p>Successfully migrated the entire project from ASP.NET Core Identity to Keycloak. The API now functions as a secure Resource Server including auto-provisioning of local user profiles and <b>Swagger OAuth2/PKCE</b> login integration.</p>
+        <p><a href="keycloak.html">View Detailed Keycloak Log →</a></p>
+    </div>
     <div class="card">
         <div class="card-header">
             <h3 class="card-title">Fixed Typo in Controller Names</h3>

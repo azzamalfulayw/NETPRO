@@ -78,6 +78,8 @@ namespace api.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var appUser = await _userResolverService.GetUserAsync();
+            if (appUser == null) return Unauthorized();
+
             var existingComment = await _mediator.Send(new GetCommentByIdQuery { Id = id });
 
             if (existingComment == null) return NotFound("Comment not found");
@@ -98,6 +100,8 @@ namespace api.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var appUser = await _userResolverService.GetUserAsync();
+            if (appUser == null) return Unauthorized();
+
             var existingComment = await _mediator.Send(new GetCommentByIdQuery { Id = id });
 
             if (existingComment == null) return NotFound("Comment does not exist");

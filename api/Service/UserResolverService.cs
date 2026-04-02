@@ -22,8 +22,11 @@ namespace api.Service
 
         public async Task<AppUser?> GetUserAsync()
         {
-            var user = _httpContextAccessor.HttpContext?.User;
-            if (user == null || !user.Identity.IsAuthenticated)
+            var context = _httpContextAccessor.HttpContext;
+            if (context == null) return null;
+
+            var user = context.User;
+            if (user == null || user.Identity == null || !user.Identity.IsAuthenticated)
             {
                 return null;
             }

@@ -13,7 +13,7 @@ namespace api.Features.WatchList.Queries
 {
     public class GetUserWatchListQuery : IRequest<List<WatchListDto>>
     {
-        public AppUser User { get; set; }
+        public required AppUser User { get; set; }
     }
 
     public class GetUserWatchListHandler : IRequestHandler<GetUserWatchListQuery, List<WatchListDto>>
@@ -34,7 +34,9 @@ namespace api.Features.WatchList.Queries
                 MarketCap = w.Stock.MarketCap,
                 AddedOn = w.AddedOn,
                 Notes = w.Notes,
-                DaysOnWatchList = EF.Functions.DateDiffDay(w.AddedOn, DateTime.UtcNow)
+                DaysOnWatchList = EF.Functions.DateDiffDay(w.AddedOn, DateTime.UtcNow),
+                AverageRating = w.Stock.Ratings.Any() ? (decimal)w.Stock.Ratings.Average(r => r.Score) : 0,
+                RatingCount = w.Stock.Ratings.Count()
             }).ToListAsync(cancellationToken);
         }
     }
