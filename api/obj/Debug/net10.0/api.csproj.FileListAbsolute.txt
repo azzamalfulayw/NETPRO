@@ -220,3 +220,6 @@ C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\obj\Debug\net10.0\ref\api.dll
 C:\Users\Asus\OneDrive\Desktop\Train\netpro\api\obj\Debug\net10.0\api.sourcelink.json
 c:\Users\Asus\OneDrive\Desktop\Train\netpro\api\bin\Debug\net10.0\MediatR.dll
 c:\Users\Asus\OneDrive\Desktop\Train\netpro\api\bin\Debug\net10.0\MediatR.Contracts.dll
+c:\Users\Asus\OneDrive\Desktop\Train\netpro\api\bin\Debug\net10.0\Mapster.dll
+c:\Users\Asus\OneDrive\Desktop\Train\netpro\api\bin\Debug\net10.0\Mapster.Core.dll
+c:\Users\Asus\OneDrive\Desktop\Train\netpro\api\bin\Debug\net10.0\Mapster.DependencyInjection.dll

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using api.Dtos.Comment;
 using api.Extensions;
-using api.Mappers;
+
 using api.Models;
 using MediatR;
 using api.Features.Comment.Commands;
@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using api.Features.Stock.Queries;
 using api.Interfaces;
+using MapsterMapper;
 
 namespace api.Controllers
 {
@@ -22,11 +23,13 @@ namespace api.Controllers
     {
         private readonly IMediator _mediator;
         private readonly IUserResolverService _userResolverService;
+        private readonly IMapper _mapper;
 
-        public CommentController(IMediator mediator, IUserResolverService userResolverService)
+        public CommentController(IMediator mediator, IUserResolverService userResolverService, IMapper mapper)
         {
             _mediator = mediator;
             _userResolverService = userResolverService;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -35,7 +38,7 @@ namespace api.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var comments = await _mediator.Send(new GetAllCommentsQuery());
-            var commentDto = comments.Select(s => s.ToCommentDto());
+            var commentDto = comments.Select(s => _mapper.Map<CommentDto>(s));
             return Ok(commentDto);
         }
 
@@ -48,7 +51,7 @@ namespace api.Controllers
 
             if (comment == null) return NotFound();
 
-            return Ok(comment.ToCommentDto());
+            return Ok(_mapper.Map<CommentDto>(comment));
         }
 
         [HttpPost("{stockId:int}")]
@@ -62,12 +65,13 @@ namespace api.Controllers
 
             var appUser = await _userResolverService.GetUserAsync();
 
-            var commentModel = commentDto.ToCommentFromCreate(stockId);
+            var commentModel = _mapper.Map<Comment>(commentDto);
+            commentModel.StockId = stockId;
             commentModel.AppUserId = appUser.Id;
 
             await _mediator.Send(new CreateCommentCommand { Comment = commentModel });
 
-            return CreatedAtAction(nameof(GetById), new {id = commentModel.Id}, commentModel.ToCommentDto());
+            return CreatedAtAction(nameof(GetById), new {id = commentModel.Id}, _mapper.Map<CommentDto>(commentModel));
         }
 
         [HttpPut]
@@ -85,11 +89,11 @@ namespace api.Controllers
             if (existingComment == null) return NotFound("Comment not found");
             if (existingComment.AppUserId != appUser.Id) return Forbid();
 
-            var comment = await _mediator.Send(new UpdateCommentCommand { Id = id, CommentModel = updateDto.ToCommentFromUpdate() });
+            var comment = await _mediator.Send(new UpdateCommentCommand { Id = id, CommentModel = _mapper.Map<Comment>(updateDto) });
 
             if (comment == null) return NotFound("Comment not found");
 
-            return Ok(comment.ToCommentDto());
+            return Ok(_mapper.Map<CommentDto>(comment));
         }
 
         [HttpDelete]
@@ -109,7 +113,7 @@ namespace api.Controllers
                 
             var commentModel = await _mediator.Send(new DeleteCommentCommand { Id = id });
 
-            return Ok(commentModel.ToCommentDto());
+            return Ok(_mapper.Map<CommentDto>(commentModel!));
         }
     }
 }
