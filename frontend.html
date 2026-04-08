@@ -242,6 +242,15 @@
         <p><b>Fix:</b> Synced TypeScript types with <code>api/Dtos/WatchList/WatchListDto.cs</code> and added MCAP/Industry badges to the UI.</p>
     </div>
 
+    <div class="card" style="border-left-color: #8b5cf6;">
+        <div class="card-header">
+            <h3 class="card-title">Feature 11: Market Tools & AI Recommendations</h3>
+            <span class="date-badge">2026-04-08</span>
+        </div>
+        <p><b>Feature:</b> Added a dedicated "Live Prices" endpoint to the main navigation menu to provide immediate access to real-time market data.</p>
+        <p><b>Design Decision:</b> Placed the AI Recommendation feature inside the new "Live Prices" page but decoupled its trigger mechanism. Instead of automatically generating an AI analysis when a user searches for a live quote, the AI recommendation operates on a strict on-demand "Analyze" button constraint. This prevents excessive and unstructured token utilization while preserving rich UI accessibility.</p>
+    </div>
+
     <!-- ✅ INTEGRATED TRADING FLOW -->
     <h2 id="trading-flow">🏗️ Integrated Trading & Execution Flow</h2>
     

@@ -7,7 +7,8 @@ import {
   History, 
   Settings,
   LogOut,
-  Wallet
+  Wallet,
+  Activity
 } from 'lucide-react'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -22,6 +23,7 @@ function cn(...inputs: ClassValue[]) {
 const navItems = [
   { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
   { name: 'Stocks', path: '/stocks', icon: TrendingUp },
+  { name: 'Live Prices', path: '/live-prices', icon: Activity },
   { name: 'Watchlist', path: '/watchlist', icon: Star },
   { name: 'Portfolio', path: '/portfolio', icon: Briefcase },
   { name: 'Transactions', path: '/transactions', icon: History },

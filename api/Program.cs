@@ -101,9 +101,11 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserResolverService, UserResolverService>();
 
 builder.Services.Configure<StockApiSettings>(builder.Configuration.GetSection("StockApi"));
+builder.Services.Configure<GeminiSettings>(builder.Configuration.GetSection("Gemini"));
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddHttpClient<IStockDataService, StockDataService>();
+builder.Services.AddHttpClient<IAiRecommendationService, GeminiRecommendationService>();
 builder.Services.AddHostedService<StockPriceUpdateService>();
 builder.Services.AddScoped<IPortfolioAnalyticsService, PortfolioAnalyticsService>();
 
