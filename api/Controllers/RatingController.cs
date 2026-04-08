@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using api.Dtos.Rating;
 using api.Extensions;
-using api.Mappers;
+
 using api.Models;
 using MediatR;
 using api.Features.Rating.Queries;
@@ -13,6 +13,7 @@ using api.Features.Stock.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using api.Interfaces;
+using MapsterMapper;
 
 namespace api.Controllers
 {
@@ -22,11 +23,13 @@ namespace api.Controllers
     {
         private readonly IMediator _mediator;
         private readonly IUserResolverService _userResolverService;
+        private readonly IMapper _mapper;
 
-        public RatingController(IMediator mediator, IUserResolverService userResolverService)
+        public RatingController(IMediator mediator, IUserResolverService userResolverService, IMapper mapper)
         {
             _mediator = mediator;
             _userResolverService = userResolverService;
+            _mapper = mapper;
         }
         
         [HttpGet]
@@ -35,7 +38,7 @@ namespace api.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var ratings = await _mediator.Send(new GetAllRatingsQuery());
-            var ratingDto = ratings.Select(s => s.ToRatingDto());
+            var ratingDto = ratings.Select(s => _mapper.Map<RatingDto>(s));
 
             return Ok(ratingDto);
         }
@@ -49,7 +52,7 @@ namespace api.Controllers
 
             if (rating == null) return NotFound();
 
-            return Ok(rating.ToRatingDto());
+            return Ok(_mapper.Map<RatingDto>(rating));
         }
 
         [HttpPost("{stockId:int}")]
@@ -68,12 +71,13 @@ namespace api.Controllers
             var existingRating = await _mediator.Send(new GetUserRatingForStockQuery { AppUserId = appUser.Id, StockId = stockId });
             if (existingRating != null) return BadRequest("You already rated this stock");
 
-            var ratingModel = ratingDto.ToRatingCreate(stockId);
+            var ratingModel = _mapper.Map<Rating>(ratingDto);
+            ratingModel.StockId = stockId;
             ratingModel.AppUserId = appUser.Id;
 
             await _mediator.Send(new CreateRatingCommand { RatingModel = ratingModel });
 
-            return Ok(ratingModel.ToRatingDto());
+            return Ok(_mapper.Map<RatingDto>(ratingModel));
         }
 
         [HttpPut]
@@ -92,11 +96,11 @@ namespace api.Controllers
 
             if (existingRating.AppUserId != appUser.Id) return Forbid();
 
-            var rating = await _mediator.Send(new UpdateRatingCommand { Id = id, RatingModel = updateDto.ToRatingUpdate() });
+            var rating = await _mediator.Send(new UpdateRatingCommand { Id = id, RatingModel = _mapper.Map<Rating>(updateDto) });
 
             if (rating == null) return NotFound("Rating not found");
 
-            return Ok(rating.ToRatingDto());
+            return Ok(_mapper.Map<RatingDto>(rating));
         }
 
         [HttpDelete]
@@ -116,7 +120,7 @@ namespace api.Controllers
 
             var ratingModel = await _mediator.Send(new DeleteRatingCommand { Id = id });
 
-            return Ok(ratingModel.ToRatingDto());
+            return Ok(_mapper.Map<RatingDto>(ratingModel!));
         }
     }
 }

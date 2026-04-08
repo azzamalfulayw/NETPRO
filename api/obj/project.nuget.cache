@@ -1,12 +1,15 @@
 {
   "version": 2,
-  "dgSpecHash": "QYhrMw+EBfw=",
+  "dgSpecHash": "nfmSTcZU7ac=",
   "success": true,
   "projectFilePath": "C:\\Users\\Asus\\OneDrive\\Desktop\\Train\\netpro\\api\\api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Asus\\.nuget\\packages\\azure.core\\1.47.1\\azure.core.1.47.1.nupkg.sha512",
     "C:\\Users\\Asus\\.nuget\\packages\\azure.identity\\1.14.2\\azure.identity.1.14.2.nupkg.sha512",
     "C:\\Users\\Asus\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
+    "C:\\Users\\Asus\\.nuget\\packages\\mapster\\10.0.7\\mapster.10.0.7.nupkg.sha512",
+    "C:\\Users\\Asus\\.nuget\\packages\\mapster.core\\10.0.7\\mapster.core.10.0.7.nupkg.sha512",
+    "C:\\Users\\Asus\\.nuget\\packages\\mapster.dependencyinjection\\10.0.7\\mapster.dependencyinjection.10.0.7.nupkg.sha512",
     "C:\\Users\\Asus\\.nuget\\packages\\mediatr\\14.1.0\\mediatr.14.1.0.nupkg.sha512",
     "C:\\Users\\Asus\\.nuget\\packages\\mediatr.contracts\\2.0.1\\mediatr.contracts.2.0.1.nupkg.sha512",
     "C:\\Users\\Asus\\.nuget\\packages\\microsoft.aspnetcore.authentication.jwtbearer\\10.0.0\\microsoft.aspnetcore.authentication.jwtbearer.10.0.0.nupkg.sha512",

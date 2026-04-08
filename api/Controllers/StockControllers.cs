@@ -7,10 +7,12 @@ using api.Features.Stock.Queries;
 using api.Features.Stock.Commands;
 using api.Helpers;
 using api.Interfaces;
-using api.Mappers;
+
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MapsterMapper;
+using api.Models;
 
 namespace api.Controllers
 {
@@ -20,11 +22,13 @@ namespace api.Controllers
     {
         private readonly IMediator _mediator;
         private readonly IStockDataService _stockDataService;
+        private readonly IMapper _mapper;
 
-        public StockController(IMediator mediator, IStockDataService stockDataService)
+        public StockController(IMediator mediator, IStockDataService stockDataService, IMapper mapper)
         {
             _mediator = mediator;
             _stockDataService = stockDataService;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -34,7 +38,7 @@ namespace api.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var stocks = await _mediator.Send(new GetAllStocksQuery { Query = query });
-            var stockDto = stocks.Select(s => s.ToStockDto()).ToList();
+            var stockDto = stocks.Select(s => _mapper.Map<StockDto>(s)).ToList();
             return Ok(stockDto);
         }
 
@@ -46,7 +50,7 @@ namespace api.Controllers
             var stock = await _mediator.Send(new GetStockByIdQuery { Id = id });
             if (stock == null) return NotFound();
 
-            return Ok(stock.ToStockDto());
+            return Ok(_mapper.Map<StockDto>(stock));
         }
 
         [HttpPost]
@@ -54,10 +58,10 @@ namespace api.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var stockModel = stockDto.ToStockFromCreateDTO();
+            var stockModel = _mapper.Map<Stock>(stockDto);
             await _mediator.Send(new CreateStockCommand { StockModel = stockModel });
             
-            return CreatedAtAction(nameof(GetById), new { id = stockModel.Id }, stockModel.ToStockDto());
+            return CreatedAtAction(nameof(GetById), new { id = stockModel.Id }, _mapper.Map<StockDto>(stockModel));
         }
 
         [HttpPut]
@@ -69,7 +73,7 @@ namespace api.Controllers
             var stockModel = await _mediator.Send(new UpdateStockCommand { Id = id, UpdateDto = updateDto });
             if (stockModel == null) return NotFound();
 
-            return Ok(stockModel.ToStockDto());
+            return Ok(_mapper.Map<StockDto>(stockModel));
         }
 
         [HttpDelete]

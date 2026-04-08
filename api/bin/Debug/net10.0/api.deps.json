@@ -8,6 +8,8 @@
     ".NETCoreApp,Version=v10.0": {
       "api/1.0.0": {
         "dependencies": {
+          "Mapster": "10.0.7",
+          "Mapster.DependencyInjection": "10.0.7",
           "MediatR": "14.1.0",
           "Microsoft.AspNetCore.Authentication.JwtBearer": "10.0.0",
           "Microsoft.AspNetCore.Mvc.NewtonsoftJson": "8.0.0",
@@ -52,6 +54,36 @@
           "lib/net6.0/Humanizer.dll": {
             "assemblyVersion": "2.14.0.0",
             "fileVersion": "2.14.1.48190"
+          }
+        }
+      },
+      "Mapster/10.0.7": {
+        "dependencies": {
+          "Mapster.Core": "10.0.7"
+        },
+        "runtime": {
+          "lib/net10.0/Mapster.dll": {
+            "assemblyVersion": "10.0.7.0",
+            "fileVersion": "10.0.7.0"
+          }
+        }
+      },
+      "Mapster.Core/10.0.7": {
+        "runtime": {
+          "lib/netstandard2.0/Mapster.Core.dll": {
+            "assemblyVersion": "10.0.7.0",
+            "fileVersion": "10.0.7.0"
+          }
+        }
+      },
+      "Mapster.DependencyInjection/10.0.7": {
+        "dependencies": {
+          "Mapster": "10.0.7"
+        },
+        "runtime": {
+          "lib/net10.0/Mapster.DependencyInjection.dll": {
+            "assemblyVersion": "10.0.7.0",
+            "fileVersion": "10.0.7.0"
           }
         }
       },
@@ -1002,6 +1034,27 @@
       "sha512": "sha512-lQKvtaTDOXnoVJ20ibTuSIOf2i0uO0MPbDhd1jm238I+U/2ZnRENj0cktKZhtchBMtCUSRQ5v4xBCUbKNmyVMw==",
       "path": "humanizer.core/2.14.1",
       "hashPath": "humanizer.core.2.14.1.nupkg.sha512"
+    },
+    "Mapster/10.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-bZgWXyTM21Bc6Xrvk2BzPCFTwnvyTNSO4fUli/DVm02Kya80r5sY9ackpsECVlUqbda7ck9hr/1oKrCyI8yXmw==",
+      "path": "mapster/10.0.7",
+      "hashPath": "mapster.10.0.7.nupkg.sha512"
+    },
+    "Mapster.Core/10.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-73Bd0aZ+t6DoG3X4FYDfOyVgvLxgUXJKIjrps3W1n7MR03DIWI+sL62VqQSPwuJdn7WJb8HYhkH/BNZ6ZlJydw==",
+      "path": "mapster.core/10.0.7",
+      "hashPath": "mapster.core.10.0.7.nupkg.sha512"
+    },
+    "Mapster.DependencyInjection/10.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-jTLPkEH3Iii0N/dwyvpPhBPf1CdV3M4W6j8vkoLtoPZoE+LC403wBgzO8wnOZzZv+ih0l6NyVc3oNzCNxfH5vQ==",
+      "path": "mapster.dependencyinjection/10.0.7",
+      "hashPath": "mapster.dependencyinjection.10.0.7.nupkg.sha512"
     },
     "MediatR/14.1.0": {
       "type": "package",
