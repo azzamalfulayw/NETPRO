@@ -131,3 +131,7 @@ export const analyticsApi = {
     getDiversification: () => api.get('/portfolioanalytics/diversification'),
     getStockPerformance: (id: number) => api.get(`/stockanalytics/${id}/performance`),
 };
+
+export const aiRecommendationApi = {
+    getRecommendation: (symbol: string) => api.get(`/recommendations/ai/${symbol}`),
+};

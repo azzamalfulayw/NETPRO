@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import SettingsPage from './pages/SettingsPage'
 import StocksPage from './features/stocks/StocksPage'
+import LivePricesPage from './features/stocks/LivePricesPage'
 import StockDetailsPage from './features/stocks/StockDetailsPage'
 import WatchlistPage from './features/watchlist/WatchlistPage'
 import PortfolioPage from './features/portfolio/PortfolioPage'
@@ -24,6 +25,7 @@ export default function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="stocks" element={<StocksPage />} />
+          <Route path="live-prices" element={<LivePricesPage />} />
           <Route path="stocks/:id" element={<StockDetailsPage />} />
           <Route path="watchlist" element={<WatchlistPage />} />
           <Route path="portfolio" element={<PortfolioPage />} />

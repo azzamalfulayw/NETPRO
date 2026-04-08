@@ -23,7 +23,10 @@ namespace api.Service
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("StockPriceUpdateService started.");
+            _logger.LogInformation("StockPriceUpdateService started. Waiting 10 minutes before first background sync to save API quota...");
+
+            
+            await Task.Delay(TimeSpan.FromMinutes(10), stoppingToken);
 
             await UpdateAllStockPricesAsync(stoppingToken);
 

@@ -64,6 +64,57 @@
         </ul>
     </div>
 
+    <div class="card" style="border-left-color: #f1c40f; background-color: #fefce8;">
+        <div class="card-header">
+            <h3 class="card-title">⚡ AI Recommendation: Lean Analysis Mode</h3>
+            <span class="date-badge">2026-04-07</span>
+        </div>
+        <div>
+            <span class="tag">AI Integration</span>
+            <span class="tag">Performance</span>
+        </div>
+        <p>Simplified the Gemini AI prompt and the resulting <code>AiRecommendationResponseDto</code> to request only a <b>Rating</b> and a concise 1-2 sentence <b>Summary</b>.</p>
+        <p><b>Reasoning:</b> Complex structured JSON responses (previously asking for 3-5 specific reasons and warnings) forced the AI to generate excessive tokens. On the heavily loaded free tier, this prolonged generation time resulted in frequent <code>503 Service Unavailable</code> timeouts.</p>
+        <p>By shifting to a "Lean Analysis" mode, the generation is lightning fast, substantially increasing the success rate during high-demand periods.</p>
+    </div>
+
+    <div class="card" style="border-left-color: #8b5cf6; background-color: #f5f3ff;">
+        <div class="card-header">
+            <h3 class="card-title">🚀 AI-Powered Stock Recommendations (V1.2 - Error Transparency)</h3>
+            <span class="date-badge">2026-04-07</span>
+        </div>
+        <div>
+            <span class="tag">AI Integration</span>
+            <span class="tag">Bug Fix</span>
+            <span class="tag">Architecture</span>
+        </div>
+        <p>Overhauled the application's external API error handling to resolve misleading 404 responses caused by API vendor constraints (Alpha Vantage Rate Limit & Gemini High Demand).</p>
+        
+        <h4>Fixes & Improvements:</h4>
+        <ul style="padding-left: 20px;">
+            <li><b>Strict Error Separation:</b> <code>StockDataService</code> and <code>GeminiRecommendationService</code> now throw explicit <code>HttpRequestException</code> subclasses when encountering external provider blocks, rather than swallowing the failures as <code>null</code>.</li>
+            <li><b>Transparent HTTP Codes:</b> The <code>AiRecommendationController</code> now accurately returns <code>429 Too Many Requests</code> for Alpha Vantage rate limits, and <code>503 Service Unavailable</code> for Gemini model overload. The misleading <code>404</code> logic has been isolated exclusively to genuine "Symbol Not Found" cases.</li>
+            <li><b>Background Throttle:</b> Modified <code>StockPriceUpdateService</code> to wait 10 minutes on startup before executing the background price synchronization. This prevents aggressive `.NET Watch` restarts from consuming the entire Alpha Vantage daily quota during active development.</li>
+            <li><b>Resilient Grounding Intact:</b> Optional data requests (Company Info, Historicals) are wrapped in specialized try/catches so that rate-limiting on non-essential data still permits a partial recommendation using just the live price.</li>
+        </ul>
+
+        <h4>Technical Code Snip (Controller Catch Block):</h4>
+        <pre style="background: #f1f5f9; padding: 15px; border-radius: 8px; overflow-x: auto;">
+catch (System.Net.Http.HttpRequestException hex)
+{
+    int statusCode = hex.StatusCode.HasValue ? (int)hex.StatusCode.Value : 503;
+    string message = statusCode == 429 
+        ? "External API rate limit exceeded. Please wait."
+        : "The AI service is busy. Please try again later.";
+    
+    return StatusCode(statusCode, new { error = message, status = statusCode });
+}
+        </pre>
+
+        <h4>API Endpoint:</h4>
+        <p><code>GET /api/recommendations/ai/{symbol}</code> (Requires Authentication)</p>
+    </div>
+
     <div class="card" style="border-left-color: #9b59b6;">
         <div class="card-header">
             <h3 class="card-title">Fixed Missing Ratings in Watchlist</h3>
@@ -150,6 +201,18 @@
             <li>Fixed backing field casing <code>_userMAnager</code> to <code>_userManager</code> in AccountController.</li>
             <li>Generated new Entity Framework migration <code>FixSympolTypo</code> and applied database updates.</li>
         </ul>
+    </div>
+
+    <div class="card" style="border-left-color: #3b82f6;">
+        <div class="card-header">
+            <h3 class="card-title">Gemini API Connectivity Verified</h3>
+            <span class="date-badge">2026-04-06</span>
+        </div>
+        <div>
+            <span class="tag">AI Integration</span>
+            <span class="tag">Smoke Test</span>
+        </div>
+        <p>Implemented and successfully verified a minimal Gemini 2.5 Flash connectivity smoke test. The test confirmed that the backend can securely communicate with Gemini via <code>HttpClient</code> using API keys from user-secrets. The temporary test service and endpoint were subsequently removed to maintain a clean codebase, while preserving the <code>GeminiSettings</code> configuration for the upcoming recommendation feature.</p>
     </div>
 
     <div class="card" style="border-left-color: #22c55e; background-color: #f0fff4;">

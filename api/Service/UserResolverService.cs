@@ -39,7 +39,7 @@ namespace api.Service
 
             var appUser = await _context.AppUsers.FirstOrDefaultAsync(u => u.Id == subClaim);
 
-            // Auto-provision if missing
+            
             if (appUser == null)
             {
                 var username = user.FindFirst("preferred_username")?.Value ?? subClaim;
