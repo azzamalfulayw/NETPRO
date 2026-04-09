@@ -8,9 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Mapster;
-using MapsterMapper;
-using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -100,15 +97,19 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
         
-TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
-builder.Services.AddSingleton(TypeAdapterConfig.GlobalSettings);
-builder.Services.AddScoped<IMapper, ServiceMapper>();
-        
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserResolverService, UserResolverService>();
 
 builder.Services.Configure<StockApiSettings>(builder.Configuration.GetSection("StockApi"));
 builder.Services.Configure<GeminiSettings>(builder.Configuration.GetSection("Gemini"));
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379";
+});
+builder.Services.AddSingleton<LazyCache.IAppCache, LazyCache.CachingService>();
+builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
+
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddHttpClient<IStockDataService, StockDataService>();
