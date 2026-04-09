@@ -1,8 +1,12 @@
 using api.Data;
 using api.Interfaces;
+using api.Mappings;
 using api.Models;
 using api.Repository;
 using api.Service;
+using Mapster;
+using MapsterMapper;
+using System.Reflection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -96,6 +100,11 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+
+var config = TypeAdapterConfig.GlobalSettings;
+config.Scan(Assembly.GetExecutingAssembly());
+builder.Services.AddSingleton(config);
+builder.Services.AddScoped<IMapper, ServiceMapper>();
         
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUserResolverService, UserResolverService>();
