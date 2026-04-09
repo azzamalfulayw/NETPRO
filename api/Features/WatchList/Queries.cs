@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System;
 using System.Threading.Tasks;
+using api.Interfaces;
 
 namespace api.Features.WatchList.Queries
 {
@@ -19,25 +20,36 @@ namespace api.Features.WatchList.Queries
     public class GetUserWatchListHandler : IRequestHandler<GetUserWatchListQuery, List<WatchListDto>>
     {
         private readonly ApplicationDBContext _context;
-        public GetUserWatchListHandler(ApplicationDBContext context) => _context = context;
+        private readonly IRedisCacheService _redisCacheService;
+
+        public GetUserWatchListHandler(ApplicationDBContext context, IRedisCacheService redisCacheService)
+        {
+            _context = context;
+            _redisCacheService = redisCacheService;
+        }
+
         public async Task<List<WatchListDto>> Handle(GetUserWatchListQuery request, CancellationToken cancellationToken)
         {
-            return await _context.WatchLists.Where(w => w.AppUserId == request.User.Id)
-            .Select(w => new WatchListDto
+            var cacheKey = $"watchlist:user:{request.User.Id}";
+            return await _redisCacheService.GetOrAddAsync(cacheKey, async () =>
             {
-                StockId = w.StockId,
-                Symbol = w.Stock.Symbol,
-                CompanyName = w.Stock.CompanyName,
-                Purchase = w.Stock.Purchase,
-                LastDiv = w.Stock.LastDiv,
-                Industry = w.Stock.Industry,
-                MarketCap = w.Stock.MarketCap,
-                AddedOn = w.AddedOn,
-                Notes = w.Notes,
-                DaysOnWatchList = EF.Functions.DateDiffDay(w.AddedOn, DateTime.UtcNow),
-                AverageRating = w.Stock.Ratings.Any() ? (decimal)w.Stock.Ratings.Average(r => r.Score) : 0,
-                RatingCount = w.Stock.Ratings.Count()
-            }).ToListAsync(cancellationToken);
+                return await _context.WatchLists.Where(w => w.AppUserId == request.User.Id)
+                .Select(w => new WatchListDto
+                {
+                    StockId = w.StockId,
+                    Symbol = w.Stock.Symbol,
+                    CompanyName = w.Stock.CompanyName,
+                    Purchase = w.Stock.Purchase,
+                    LastDiv = w.Stock.LastDiv,
+                    Industry = w.Stock.Industry,
+                    MarketCap = w.Stock.MarketCap,
+                    AddedOn = w.AddedOn,
+                    Notes = w.Notes,
+                    DaysOnWatchList = EF.Functions.DateDiffDay(w.AddedOn, DateTime.UtcNow),
+                    AverageRating = w.Stock.Ratings.Any() ? (decimal)w.Stock.Ratings.Average(r => r.Score) : 0,
+                    RatingCount = w.Stock.Ratings.Count()
+                }).ToListAsync(cancellationToken);
+            }, TimeSpan.FromMinutes(15)) ?? new List<WatchListDto>();
         }
     }
 }

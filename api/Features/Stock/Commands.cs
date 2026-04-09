@@ -5,6 +5,7 @@ using api.Dtos.Stock;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
+using api.Interfaces;
 
 namespace api.Features.Stock.Commands
 {
@@ -34,11 +35,21 @@ namespace api.Features.Stock.Commands
     public class UpdateStockHandler : IRequestHandler<UpdateStockCommand, api.Models.Stock?>
     {
         private readonly ApplicationDBContext _context;
-        public UpdateStockHandler(ApplicationDBContext context) => _context = context;
+        private readonly IRedisCacheService _redisCacheService;
+
+        public UpdateStockHandler(ApplicationDBContext context, IRedisCacheService redisCacheService)
+        {
+            _context = context;
+            _redisCacheService = redisCacheService;
+        }
+
         public async Task<api.Models.Stock?> Handle(UpdateStockCommand request, CancellationToken cancellationToken)
         {
             var existingStock = await _context.Stocks.FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
             if (existingStock == null) return null;
+
+            // Invalidate the old symbol just in case the symbol is being updated
+            await _redisCacheService.RemoveAsync($"stock:symbol:{existingStock.Symbol.ToUpper()}");
 
             existingStock.Symbol = request.UpdateDto.Symbol;
             existingStock.CompanyName = request.UpdateDto.CompanyName;
@@ -48,6 +59,11 @@ namespace api.Features.Stock.Commands
             existingStock.MarketCap = request.UpdateDto.MarketCap;
 
             await _context.SaveChangesAsync(cancellationToken);
+
+            // Invalidate the details and the potentially new symbol
+            await _redisCacheService.RemoveAsync($"stock:detail:{existingStock.Id}");
+            await _redisCacheService.RemoveAsync($"stock:symbol:{existingStock.Symbol.ToUpper()}");
+
             return existingStock;
         }
     }
@@ -60,7 +76,14 @@ namespace api.Features.Stock.Commands
     public class DeleteStockHandler : IRequestHandler<DeleteStockCommand, api.Models.Stock?>
     {
         private readonly ApplicationDBContext _context;
-        public DeleteStockHandler(ApplicationDBContext context) => _context = context;
+        private readonly IRedisCacheService _redisCacheService;
+
+        public DeleteStockHandler(ApplicationDBContext context, IRedisCacheService redisCacheService)
+        {
+            _context = context;
+            _redisCacheService = redisCacheService;
+        }
+
         public async Task<api.Models.Stock?> Handle(DeleteStockCommand request, CancellationToken cancellationToken)
         {
             var stockModel = await _context.Stocks.FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
@@ -68,6 +91,10 @@ namespace api.Features.Stock.Commands
 
             _context.Stocks.Remove(stockModel);
             await _context.SaveChangesAsync(cancellationToken);
+
+            await _redisCacheService.RemoveAsync($"stock:detail:{stockModel.Id}");
+            await _redisCacheService.RemoveAsync($"stock:symbol:{stockModel.Symbol.ToUpper()}");
+
             return stockModel;
         }
     }

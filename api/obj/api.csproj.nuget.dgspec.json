@@ -48,6 +48,10 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "dependencies": {
+            "LazyCache": {
+              "target": "Package",
+              "version": "[2.4.0, )"
+            },
             "MediatR": {
               "target": "Package",
               "version": "[14.1.0, )"
@@ -72,6 +76,10 @@
               "target": "Package",
               "version": "[10.0.0, )"
             },
+            "Microsoft.Extensions.Caching.StackExchangeRedis": {
+              "target": "Package",
+              "version": "[10.0.5, )"
+            },
             "Microsoft.OpenApi": {
               "target": "Package",
               "version": "[1.6.25, )"
@@ -79,6 +87,10 @@
             "Newtonsoft.Json": {
               "target": "Package",
               "version": "[13.0.5-beta1, )"
+            },
+            "StackExchange.Redis": {
+              "target": "Package",
+              "version": "[2.12.14, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",

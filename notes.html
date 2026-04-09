@@ -74,5 +74,81 @@ npm install -D typescript tailwindcss postcss autoprefixer
 npm install -D @types/react @types/react-dom @types/node</code></pre>
     </div>
 
+    <div class="card" style="border-top-color: #2ecc71;">
+        <h3>Node.js Global Code Comment Stripper (C#)</h3>
+        <p>A specialized automation script to recursively parse a directory and cleanly remove all single-line (<code>//</code>) and multi-line (<code>/* */</code>) comments from C# source files without accidentally corrupting string literals containing comment-like character sequences (e.g., URL protocol handlers like <code>"https://"</code>).</p>
+        
+        <h4>How it Works:</h4>
+        <ul>
+            <li><code>fs.readdirSync()</code> traverses the directory tree continuously, isolating active <code>.cs</code> files and willfully avoiding locked artifact folders (<code>bin/obj</code>).</li>
+            <li>Reads the raw contents chunked into JavaScript memory execution.</li>
+            <li>Constructs an advanced Regex tokenization execution: <code>/(".*?"|'.*?'|@".*?")|(\/\*[\s\S]*?\*\/)|(\/\/.*)/g</code>.</li>
+            <li>If a match resolves to a safe string token (capture group 1), the regex gracefully ignores it. If it specifically hits an evaluated comment block (capture group 2 or 3), it mutates it to an empty string.</li>
+        </ul>
+
+        <h4>The Script:</h4>
+        <pre><code>const fs = require('fs');
+const path = require('path');
+
+function removeComments(dir) {
+    const files = fs.readdirSync(dir);
+    for (const file of files) {
+        const fullPath = path.join(dir, file);
+        if (fs.statSync(fullPath).isDirectory()) {
+            // Ignore build output constraints
+            if (file === 'bin' || file === 'obj' || file === 'Migrations') continue;
+            removeComments(fullPath);
+        } else if (file.endsWith('.cs')) {
+            let content = fs.readFileSync(fullPath, 'utf8');
+            // Advanced regex explicitly preserving C# strings and stripping comments
+            content = content.replace(/(".*?"|'.*?'|@".*?")|(\/\*[\s\S]*?\*\/)|(\/\/.*)/g, (match, grp1) => {
+                if (grp1) return grp1;
+                return '';
+            });
+            fs.writeFileSync(fullPath, content, 'utf8');
+        }
+    }
+}
+
+removeComments(path.join(__dirname, 'api'));
+console.log('Comments successfully stripped.');</code></pre>
+
+        <h4>How to Run in the Future:</h4>
+        <p>Save this exact script as <code>strip-comments.js</code> at the root structure of your project space. Confirm that a local Node.js environment is available, then boot it by inputting <code>node strip-comments.js</code> inside the system terminal.</p>
+    </div>
+
+    <div class="card" style="border-top-color: #3b82f6;">
+        <h3>Why Gemini API for NETPRO AI Recommendations? (vs. Claude)</h3>
+        <p>A breakdown of the decision matrix behind selecting Google's Gemini API (specifically the Flash models) to power the live Stock AI Recommendations feature, rather than Anthropic's Claude API.</p>
+        
+        <h4>Core Reasoning for Gemini:</h4>
+        <ul>
+            <li><b>Generous Free Tier:</b> Gemini offers a highly accessible free tier (e.g., 15 RPM) which is perfect for active, iterative development environments like NETPRO without requiring immediate billing configurations or draining prepaid credits.</li>
+            <li><b>Lightning Fast Inference (Flash Models):</b> For a UI component expecting synchronous real-time responses ("Live Prices & AI Recommender"), Time-to-First-Token (TTFT) is critical. Gemini Flash excels at rapid output generation, keeping our UI snappy.</li>
+            <li><b>Reliable JSON Structured Output:</b> Our backend relies on parsing a strict <code>AiRecommendationResponseDto</code>. Gemini's API effortlessly supports schema-enforced JSON outputs out of the box, ensuring the C# backend rarely crashes due to parsing logic.</li>
+        </ul>
+
+        <h4>Comparison against Claude API:</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+            <div style="background: #eff6ff; padding: 15px; border-radius: 8px; border-left: 3px solid #60a5fa;">
+                <strong>Gemini (Chosen)</strong>
+                <ul style="margin-top: 5px; margin-bottom: 0; padding-left: 20px;">
+                    <li>Ideal for lightweight, high-speed UI endpoints.</li>
+                    <li>Easily accessible developer tier for zero-cost prototyping.</li>
+                    <li>Highly optimized for REST integrations utilizing explicit JSON boundaries.</li>
+                </ul>
+            </div>
+            <div style="background: #fdf4ff; padding: 15px; border-radius: 8px; border-left: 3px solid #c084fc;">
+                <strong>Anthropic Claude</strong>
+                <ul style="margin-top: 5px; margin-bottom: 0; padding-left: 20px;">
+                    <li>Arguably superior deep reasoning and stylistic nuance for complex analytical reports.</li>
+                    <li>Strictly paid API access (requires pre-funded credits to realistically test).</li>
+                    <li>Excellent at following prompt constraints but historically required more manual prompt-engineering for raw JSON extraction.</li>
+                </ul>
+            </div>
+        </div>
+        <p style="margin-top: 15px; font-size: 0.9em; color: #666;"><b>Conclusion:</b> While Claude is phenomenal for deep systemic analysis, Gemini Flash provided the perfect intersection of zero-friction cost, blistering speed, and easy backend DTO parsing necessary for an interactive web marketplace.</p>
+    </div>
+
 </body>
 </html>

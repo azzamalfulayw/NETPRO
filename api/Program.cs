@@ -102,6 +102,14 @@ builder.Services.AddScoped<IUserResolverService, UserResolverService>();
 
 builder.Services.Configure<StockApiSettings>(builder.Configuration.GetSection("StockApi"));
 builder.Services.Configure<GeminiSettings>(builder.Configuration.GetSection("Gemini"));
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379";
+});
+builder.Services.AddSingleton<LazyCache.IAppCache, LazyCache.CachingService>();
+builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
+
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddHttpClient<IStockDataService, StockDataService>();

@@ -4,6 +4,7 @@ using api.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
+using api.Interfaces;
 
 namespace api.Features.Comment.Commands
 {
@@ -15,11 +16,26 @@ namespace api.Features.Comment.Commands
     public class CreateCommentHandler : IRequestHandler<CreateCommentCommand, api.Models.Comment>
     {
         private readonly ApplicationDBContext _context;
-        public CreateCommentHandler(ApplicationDBContext context) => _context = context;
+        private readonly IRedisCacheService _redisCacheService;
+
+        public CreateCommentHandler(ApplicationDBContext context, IRedisCacheService redisCacheService)
+        {
+            _context = context;
+            _redisCacheService = redisCacheService;
+        }
+
         public async Task<api.Models.Comment> Handle(CreateCommentCommand request, CancellationToken cancellationToken)
         {
             await _context.Comments.AddAsync(request.Comment, cancellationToken);
             await _context.SaveChangesAsync(cancellationToken);
+
+            var stock = await _context.Stocks.FindAsync(request.Comment.StockId);
+            if (stock != null)
+            {
+                await _redisCacheService.RemoveAsync($"stock:detail:{stock.Id}");
+                await _redisCacheService.RemoveAsync($"stock:symbol:{stock.Symbol.ToUpper()}");
+            }
+
             return request.Comment;
         }
     }
@@ -33,7 +49,14 @@ namespace api.Features.Comment.Commands
     public class UpdateCommentHandler : IRequestHandler<UpdateCommentCommand, api.Models.Comment?>
     {
         private readonly ApplicationDBContext _context;
-        public UpdateCommentHandler(ApplicationDBContext context) => _context = context;
+        private readonly IRedisCacheService _redisCacheService;
+
+        public UpdateCommentHandler(ApplicationDBContext context, IRedisCacheService redisCacheService)
+        {
+            _context = context;
+            _redisCacheService = redisCacheService;
+        }
+
         public async Task<api.Models.Comment?> Handle(UpdateCommentCommand request, CancellationToken cancellationToken)
         {
             var existingComment = await _context.Comments.FindAsync(request.Id);
@@ -43,6 +66,14 @@ namespace api.Features.Comment.Commands
             existingComment.Content = request.CommentModel.Content;
 
             await _context.SaveChangesAsync(cancellationToken);
+
+            var stock = await _context.Stocks.FindAsync(existingComment.StockId);
+            if (stock != null)
+            {
+                await _redisCacheService.RemoveAsync($"stock:detail:{stock.Id}");
+                await _redisCacheService.RemoveAsync($"stock:symbol:{stock.Symbol.ToUpper()}");
+            }
+
             return existingComment;
         }
     }
@@ -55,7 +86,14 @@ namespace api.Features.Comment.Commands
     public class DeleteCommentHandler : IRequestHandler<DeleteCommentCommand, api.Models.Comment?>
     {
         private readonly ApplicationDBContext _context;
-        public DeleteCommentHandler(ApplicationDBContext context) => _context = context;
+        private readonly IRedisCacheService _redisCacheService;
+
+        public DeleteCommentHandler(ApplicationDBContext context, IRedisCacheService redisCacheService)
+        {
+            _context = context;
+            _redisCacheService = redisCacheService;
+        }
+
         public async Task<api.Models.Comment?> Handle(DeleteCommentCommand request, CancellationToken cancellationToken)
         {
             var commentModel = await _context.Comments.FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
@@ -63,6 +101,14 @@ namespace api.Features.Comment.Commands
 
             _context.Comments.Remove(commentModel);
             await _context.SaveChangesAsync(cancellationToken);
+
+            var stock = await _context.Stocks.FindAsync(commentModel.StockId);
+            if (stock != null)
+            {
+                await _redisCacheService.RemoveAsync($"stock:detail:{stock.Id}");
+                await _redisCacheService.RemoveAsync($"stock:symbol:{stock.Symbol.ToUpper()}");
+            }
+
             return commentModel;
         }
     }

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using api.Interfaces;
 
 namespace api.Features.Stock.Queries
 {
@@ -46,14 +47,25 @@ namespace api.Features.Stock.Queries
     public class GetStockByIdHandler : IRequestHandler<GetStockByIdQuery, api.Models.Stock?>
     {
         private readonly ApplicationDBContext _context;
-        public GetStockByIdHandler(ApplicationDBContext context) => _context = context;
+        private readonly IRedisCacheService _redisCacheService;
+
+        public GetStockByIdHandler(ApplicationDBContext context, IRedisCacheService redisCacheService)
+        {
+            _context = context;
+            _redisCacheService = redisCacheService;
+        }
+
         public async Task<api.Models.Stock?> Handle(GetStockByIdQuery request, CancellationToken cancellationToken)
         {
-            return await _context.Stocks
-                .Include(c => c.Comments)
-                    .ThenInclude(a => a.AppUser)
-                .Include(r => r.Ratings)
-                .FirstOrDefaultAsync(i => i.Id == request.Id, cancellationToken);
+            var cacheKey = $"stock:detail:{request.Id}";
+            return await _redisCacheService.GetOrAddAsync(cacheKey, async () =>
+            {
+                return await _context.Stocks
+                    .Include(c => c.Comments)
+                        .ThenInclude(a => a.AppUser)
+                    .Include(r => r.Ratings)
+                    .FirstOrDefaultAsync(i => i.Id == request.Id, cancellationToken);
+            }, TimeSpan.FromMinutes(10));
         }
     }
 
@@ -65,14 +77,25 @@ namespace api.Features.Stock.Queries
     public class GetStockBySymbolHandler : IRequestHandler<GetStockBySymbolQuery, api.Models.Stock?>
     {
         private readonly ApplicationDBContext _context;
-        public GetStockBySymbolHandler(ApplicationDBContext context) => _context = context;
+        private readonly IRedisCacheService _redisCacheService;
+
+        public GetStockBySymbolHandler(ApplicationDBContext context, IRedisCacheService redisCacheService)
+        {
+            _context = context;
+            _redisCacheService = redisCacheService;
+        }
+
         public async Task<api.Models.Stock?> Handle(GetStockBySymbolQuery request, CancellationToken cancellationToken)
         {
-            return await _context.Stocks
-                .Include(c => c.Comments)
-                    .ThenInclude(a => a.AppUser)
-                .Include(r => r.Ratings)
-                .FirstOrDefaultAsync(s => s.Symbol == request.Symbol, cancellationToken);
+            var cacheKey = $"stock:symbol:{request.Symbol.ToUpper()}";
+            return await _redisCacheService.GetOrAddAsync(cacheKey, async () =>
+            {
+                return await _context.Stocks
+                    .Include(c => c.Comments)
+                        .ThenInclude(a => a.AppUser)
+                    .Include(r => r.Ratings)
+                    .FirstOrDefaultAsync(s => s.Symbol == request.Symbol, cancellationToken);
+            }, TimeSpan.FromMinutes(10));
         }
     }
 

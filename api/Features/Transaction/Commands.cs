@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
 using System;
+using api.Interfaces;
 
 namespace api.Features.Transaction.Commands
 {
@@ -18,7 +19,13 @@ namespace api.Features.Transaction.Commands
     public class CreateTransactionHandler : IRequestHandler<CreateTransactionCommand, string>
     {
         private readonly ApplicationDBContext _context;
-        public CreateTransactionHandler(ApplicationDBContext context) => _context = context;
+        private readonly IRedisCacheService _redisCacheService;
+
+        public CreateTransactionHandler(ApplicationDBContext context, IRedisCacheService redisCacheService)
+        {
+            _context = context;
+            _redisCacheService = redisCacheService;
+        }
 
         public async Task<string> Handle(CreateTransactionCommand request, CancellationToken cancellationToken)
         {
@@ -82,6 +89,13 @@ namespace api.Features.Transaction.Commands
             }
 
             await _context.SaveChangesAsync(cancellationToken);
+
+            // Invalidate cache
+            await _redisCacheService.RemoveAsync($"portfolio:analytics:{appUser.Id}");
+            await _redisCacheService.RemoveAsync($"portfolio:diversification:{appUser.Id}");
+            await _redisCacheService.RemoveAsync($"portfolio:history:{appUser.Id}:30");
+            await _redisCacheService.RemoveAsync($"portfolio:stock-performance:{transactionDto.StockId}:{appUser.Id}");
+            
             return "Success";
         }
     }
