@@ -72,6 +72,45 @@ npm install recharts react-hot-toast
 # Development & Types
 npm install -D typescript tailwindcss postcss autoprefixer
 npm install -D @types/react @types/react-dom @types/node</code></pre>
+    <div class="card" style="border-top-color: #ef4444;">
+        <h3>🛡️ Sentry Backend Implementation Guide</h3>
+        <p>Follow these steps to replicate the Sentry integration for error monitoring and telemetry in an ASP.NET Core environment.</p>
+        
+        <h4>Setup Workflow:</h4>
+        <ol>
+            <li>
+                <strong>Install Package:</strong> Add the <code>Sentry.AspNetCore</code> NuGet package.
+                <pre><code>dotnet add package Sentry.AspNetCore --version 6.3.2</code></pre>
+            </li>
+            <li>
+                <strong>Register Middleware:</strong> Update <code>Program.cs</code> to use Sentry within the <code>WebApplicationBuilder</code>.
+                <pre><code>builder.WebHost.UseSentry(options => {
+    // Enable debug mode for initial verification
+    options.Debug = true; 
+});</code></pre>
+            </li>
+            <li>
+                <strong>Configure App Settings:</strong> Define the <code>Sentry</code> section in <code>appsettings.json</code> with the project DSN and sampling rates.
+                <pre><code>"Sentry": {
+  "Dsn": "YOUR_SENTRY_DSN_HERE",
+  "TracesSampleRate": 1.0,
+  "EnableLogs": true
+}</code></pre>
+            </li>
+            <li>
+                <strong>Verify Initialization:</strong> Monitor the terminal output during startup. If <code>options.Debug = true</code>, Sentry will print SDK initialization logs.
+            </li>
+            <li>
+                <strong>Failure Testing:</strong> Validate the setup by simulating real-world service failures:
+                <ul>
+                    <li>Kill the local Redis container to trigger cache connection errors.</li>
+                    <li>Provide an invalid API key to Alpha Vantage or Gemini AI.</li>
+                    <li>Attempt to access restricted endpoints with malformed JWT tokens.</li>
+                </ul>
+            </li>
+        </ol>
+        
+        <p><i>Note: For production, reduce <code>TracesSampleRate</code> to 0.1 or lower depending on traffic volume to manage event quotas.</i></p>
     </div>
 
 </body>
