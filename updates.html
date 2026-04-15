@@ -64,6 +64,44 @@
         </ul>
     </div>
 
+    <div class="card" style="border-left-color: #ef4444; background-color: #fef2f2;">
+        <div class="card-header">
+            <h3 class="card-title">🛡️ Backend Error Monitoring: Sentry Integration</h3>
+            <span class="date-badge">2026-04-15</span>
+        </div>
+        <div>
+            <span class="tag">Observability</span>
+            <span class="tag">Error Tracking</span>
+            <span class="tag">Infrastructure</span>
+        </div>
+        <p>Integrated <b>Sentry</b> into the ASP.NET Core backend to provide robust error monitoring and real-time observability. This allows the application to capture unhandled exceptions, performance bottlenecks, and diagnostic logs automatically, ensuring that runtime issues are identified and resolved before they impact users.</p>
+        
+        <h4>Implementation Details:</h4>
+        <ul style="padding-left: 20px;">
+            <li><b>Middleware Registration:</b> Utilized <code>builder.WebHost.UseSentry()</code> in <code>Program.cs</code> to hook into the ASP.NET Core pipeline.</li>
+            <li><b>Structured Configuration:</b> Offloaded sensitive and environment-specific settings to the <code>Sentry</code> section in <code>appsettings.json</code>.</li>
+            <li><b>Telemetry Features:</b> Enabled tracing via <code>TracesSampleRate</code> for performance profiling and <code>EnableLogs</code> to include logging context in error reports.</li>
+        </ul>
+
+        <h4>Key Configuration (appsettings.json):</h4>
+        <pre style="background: #f1f5f9; padding: 15px; border-radius: 8px; overflow-x: auto;">
+"Sentry": {
+  "Dsn": "https://...sentry.io/...",
+  "TracesSampleRate": 1.0,
+  "EnableLogs": true
+}</pre>
+
+        <h4>Resilience Testing:</h4>
+        <p>The integration was verified against critical service failure scenarios to ensure accurate alerting:</p>
+        <ul>
+            <li><b>Database & Redis:</b> Verified that connection timeouts and persistence errors are reported with full stack traces.</li>
+            <li><b>External APIs:</b> Simulated failures in the Gemini AI and Stock Data services (Alpha Vantage) to monitor error propagation.</li>
+            <li><b>Security & Auth:</b> Ensured that authentication/authorization failures are captured without leaking sensitive PII.</li>
+        </ul>
+
+        <p><b>Files Touched:</b> <code>Program.cs</code>, <code>appsettings.json</code>, <code>api.csproj</code></p>
+    </div>
+
     <div class="card" style="border-left-color: #f1c40f; background-color: #fefce8;">
         <div class="card-header">
             <h3 class="card-title">⚡ AI Recommendation: Lean Analysis Mode</h3>
