@@ -1,0 +1,30 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: netpro-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourStrong!Passw0rd"
+    ports:
+      - "1433:1433"
+    volumes:
+      - netpro-sqlserver-data:/var/opt/mssql
+
+  redis:
+    image: redis:latest
+    container_name: netpro-redis
+    ports:
+      - "6379:6379"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: netpro-keycloak
+    command: start-dev
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+
+volumes:
+  netpro-sqlserver-data:
